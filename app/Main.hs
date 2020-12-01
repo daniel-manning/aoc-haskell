@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import Day01
 
 main :: IO ()
-main = someFunc
+main = putStr =<< (unlines <$> map show <$> day01Pt1Solution)
