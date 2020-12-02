@@ -1,10 +1,10 @@
 name:                aoc-haskell
 version:             0.1.0.0
-github:              "githubuser/aoc-haskell"
+github:              "daniel-manning/aoc-haskell"
 license:             BSD3
-author:              "Author name here"
+author:              "Daniel Manning"
 maintainer:          "example@example.com"
-copyright:           "2020 Author name here"
+copyright:           "2020 Daniel Manning"
 
 extra-source-files:
 - README.md

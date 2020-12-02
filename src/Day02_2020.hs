@@ -1,4 +1,4 @@
-module Day02
+module Day02_2020
     (
         totalValidPasswords
     ) where
@@ -56,4 +56,4 @@ totalValidOldPasswords :: IO Int
 totalValidOldPasswords =  length . filter id . map validatePasswordWithOldRule <$> readFileOfPasswords
 
 readFileOfPasswords :: IO [String]
-readFileOfPasswords = lines <$> readFile "resource/day02"
+readFileOfPasswords = lines <$> readFile "resource/2020/day02"

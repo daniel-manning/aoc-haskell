@@ -1,4 +1,4 @@
-module Day01
+module Day01_2020
     (
     day01Pt1Solution,
     day01Pt2Solution
@@ -36,4 +36,4 @@ crossListTriple:: (Ord a) => [a] -> [(a, a, a)]
 crossListTriple list = [(x,y,z) | x <- list, y <- list, x <= y, z <- list,  y <= z]
 
 readFileofInts :: IO [Int]
-readFileofInts = map read . lines <$> readFile "resource/day01"
+readFileofInts = map read . lines <$> readFile "resource/2020/day01"

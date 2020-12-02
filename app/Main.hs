@@ -1,6 +1,6 @@
 module Main where
 
-import Day02
+import Day01_2015
 
 main :: IO ()
-main = putStrLn <$> show =<< totalValidPasswords
+main = putStrLn <$> show =<< day01Part2
