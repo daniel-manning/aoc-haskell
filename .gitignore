@@ -3,4 +3,5 @@ aoc-haskell.cabal
 stack.yaml.lock
 aoc-haskell.iml
 .idea/*
+dist-newstyle/*
 *~
