@@ -33,11 +33,18 @@ parseRuleAndPassword = do
 regularParse :: Parser a -> String -> Either ParseError a
 regularParse p = parse p ""
 
-checkPasswordForRule :: (Rule, Password) -> Bool
-checkPasswordForRule ((Rule lowest highest character), (Password password)) =
+checkPasswordForOldRule :: (Rule, Password) -> Bool
+checkPasswordForOldRule ((Rule lowest highest character), (Password password)) =
   (isJust noOfUses) && (highest >= (snd $ fromJust noOfUses)) && (lowest <= (snd $ fromJust noOfUses))
   where
     noOfUses = listToMaybe $ filter (\n -> character == fst n) $ map (\x -> (head x, length x)) $ group $ sort password
+
+checkPasswordForRule :: (Rule, Password) -> Bool
+checkPasswordForRule ((Rule posOne posTwo character), (Password password)) =
+   (passwordCharacter posOne character) /= (passwordCharacter posTwo character)
+  where
+   passwordCharacter n c = (fst $ head $ filter (\l -> (snd l) == n ) $ passwordWithIndex) == c
+   passwordWithIndex = zip password ([1..])
 
 validatePasswordWithRule :: String -> Bool
 validatePasswordWithRule input = checkPasswordForRule $ fromRight' $ regularParse parseRuleAndPassword input
