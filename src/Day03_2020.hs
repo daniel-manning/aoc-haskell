@@ -1,6 +1,7 @@
 module Day03_2020
     (
-    runSlope
+    runSlope,
+    findProduct
     ) where
 
     import Data.List (find)
@@ -17,7 +18,10 @@ module Day03_2020
         trees = constructTreeField input
 
     runSlope :: IO Int
-    runSlope = travelDownSlope (Gradient 3 1) <$> readFileOfPasswords
+    runSlope = travelDownSlope (Gradient 3 1) <$> readCourse
+
+    findProduct :: IO Int
+    findProduct = product <$> (\input -> map (\g -> travelDownSlope g input) [Gradient 1 1, Gradient 3 1, Gradient 5 1, Gradient 7 1, Gradient 1 2]) <$> readCourse
 
     constructTreeField :: [String] -> [Position]
     constructTreeField input = map fst $ filter (\n -> snd n == '#') $ concat $ map (\n -> (map (\l -> ( Position (fst l) (fst n), snd l)) $ zip [0..] $ snd n) ) $ zip [0..] input
@@ -25,5 +29,5 @@ module Day03_2020
     sizeOfSlope :: [String] -> SlopeDimensions
     sizeOfSlope input = SlopeDimensions (length $ head input) (length input)
 
-    readFileOfPasswords :: IO [String]
-    readFileOfPasswords = lines <$> readFile "resource/2020/day03"
+    readCourse :: IO [String]
+    readCourse = lines <$> readFile "resource/2020/day03"
