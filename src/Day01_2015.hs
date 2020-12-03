@@ -9,7 +9,7 @@ import Data.Maybe (fromJust)
 
 evaluateFloorCommand :: String -> Int
 evaluateFloorCommand input =
-  (snd $ fromJust $ find (\l -> fst l == '(') list) - (snd $ fromJust $ find (\l -> fst l == ')') list)
+  snd (fromJust $ find (\l -> fst l == '(') list) - snd (fromJust $ find (\l -> fst l == ')') list)
   where
     list = map (\x -> (head x, length x)) $ group $ sort input
 

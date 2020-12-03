@@ -36,7 +36,7 @@ calculateLength :: String -> Int
 calculateLength input = ribbon $ fromRight' $ parse parseDimensions "" input
 
 ribbon :: Dimensions -> Int
-ribbon (Dimensions l w h) = l*w*h + 2*(sum $ take 2 $ sort [l,w,h])
+ribbon (Dimensions l w h) = l*w*h + 2 * sum (take 2 $ sort [l,w,h])
 
 sumOfElvesList = sum . map calculateArea <$> readString
 sumOfRibbonList = sum . map calculateLength <$> readString
