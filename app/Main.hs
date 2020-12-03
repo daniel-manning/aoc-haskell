@@ -1,6 +1,6 @@
 module Main where
 
-import Day02_2015
+import Day03_2020
 
 main :: IO ()
-main = putStrLn <$> show =<< sumOfElvesList
+main = putStrLn <$> show =<< findProduct
