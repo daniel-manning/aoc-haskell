@@ -28,6 +28,7 @@ dependencies:
 - text
 - base16-bytestring
 - utf8-string
+- MissingH
 
 library:
   source-dirs: src
