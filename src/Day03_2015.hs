@@ -23,7 +23,7 @@ module Day03_2015
  howManyHousesPart2 :: String -> Int
  howManyHousesPart2 commands = length $ nub (commandSanta commandsHalf ++ commandSanta commandsOtherHalf)
    where
-     commandsHalf = map fst $ filter even.snd $ zip commands [1..]
+     commandsHalf = map fst $ filter (\l -> snd l `mod` 2 == 0) $ zip commands [1..]
      commandsOtherHalf = map fst $ filter (\l -> snd l `mod` 2 == 1) $ zip commands [1..]
 
  day03Part1 = howManyHouses <$> readString

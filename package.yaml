@@ -23,6 +23,11 @@ dependencies:
 - base >= 4.7 && < 5
 - parsec
 - either
+- cryptohash-md5
+- bytestring
+- text
+- base16-bytestring
+- utf8-string
 
 library:
   source-dirs: src
