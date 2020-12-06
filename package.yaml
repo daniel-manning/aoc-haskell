@@ -31,6 +31,7 @@ dependencies:
 - utf8-string
 - MissingH
 - containers
+- unordered-containers
 
 library:
   source-dirs: src
