@@ -6,33 +6,75 @@ module Day07_2015
     import qualified Data.HashMap.Strict as H
     import Control.Applicative (liftA2)
     import Data.Maybe (fromJust)
-    import Data.List (foldl')
+    import Data.List (foldl', sort)
+    import Data.Word
+    import Data.Char (digitToInt)
+    import Text.ParserCombinators.Parsec
+    import Data.Either.Combinators
 
-    --test :: Int
-    --test = 123 .&. 456
+    data Instruction = ASSIGN Int | AND String String | OR String String | NOT String | LSHIFT Int String | RSHIFT Int String deriving Show
+    data Command = Command Instruction String deriving Show
 
+    parseAssign = do
+        n <- many1 digit
+        return $ ASSIGN (read n)
 
-    --newtype Signals = Map String Int
-    data Command = ASSIGN Int String | AND String String String | OR String String String | NOT String String | LSHIFT Int String String | RSHIFT Int String String
+    parseAnd = do
+        idA <- many1 letter
+        space
+        string "AND"
+        space
+        idB <- many1 letter
+        return $ AND idA idB
 
-    example = [
-            ASSIGN 123 "x",
-            ASSIGN 456 "y",
-            AND "x" "y" "d",
-            OR "x" "y" "e",
-            LSHIFT 2 "x" "f",
-            RSHIFT 2 "y" "g",
-            NOT "x" "h",
-            NOT "y" "i"
-        ]
+    parseOr = do
+        idA <- many1 letter
+        space
+        string "OR"
+        space
+        idB <- many1 letter
+        return $ OR idA idB
+
+    parseNot = do
+        string "NOT"
+        space
+        idA <- many1 letter
+        return $ NOT idA
+
+    parseLShift = do
+        idA <- many1 letter
+        space
+        string "LSHIFT"
+        space
+        n <- digit
+        return $ LSHIFT (digitToInt n) idA
+
+    parseRShift = do
+            idA <- many1 letter
+            space
+            string "RSHIFT"
+            space
+            n <- digit
+            return $ RSHIFT (digitToInt n) idA
+
+    parseCommand = do
+        instruction <- choice [try parseAssign, try parseAnd, try parseOr, try parseNot, try parseLShift, try parseRShift]
+        space
+        string "->"
+        space
+        location <- many1 letter
+        return $ Command instruction location
 
     runCommand :: H.HashMap String Int -> Command -> H.HashMap String Int
-    runCommand values (ASSIGN signal location) = H.insert location signal values
-    runCommand values (OR idA idB location) = H.insert location (fromJust $ liftA2 (.|.) (H.lookup idA values) (H.lookup idB values)) (H.delete location values)
-    runCommand values (AND idA idB location) = H.insert location (fromJust $ liftA2 (.&.) (H.lookup idA values) (H.lookup idB values)) (H.delete location values)
-    runCommand values (LSHIFT n idA location) = H.insert location (fromJust $ flip shiftL n <$> (H.lookup idA values)) (H.delete location values)
-    runCommand values (RSHIFT n idA location) = H.insert location (fromJust $ flip shiftR n <$> (H.lookup idA values)) (H.delete location values)
-    runCommand values (NOT idA location) = H.insert location (fromJust $ fromInteger . complement . toInteger <$> (H.lookup idA values)) (H.delete location values)
+    runCommand values (Command (ASSIGN signal) location) = H.insert location signal values
+    runCommand values (Command (OR idA idB) location) = H.insert location (fromJust $ liftA2 (.|.) (H.lookup idA values) (H.lookup idB values)) (H.delete location values)
+    runCommand values (Command (AND idA idB) location) = H.insert location (fromJust $ liftA2 (.&.) (H.lookup idA values) (H.lookup idB values)) (H.delete location values)
+    runCommand values (Command (LSHIFT n idA) location) = H.insert location (fromJust $ flip shiftL n <$> (H.lookup idA values)) (H.delete location values)
+    runCommand values (Command (RSHIFT n idA) location) = H.insert location (fromJust $ flip shiftR n <$> (H.lookup idA values)) (H.delete location values)
+    runCommand values (Command (NOT idA) location) = H.insert location (fromJust $ (\n -> (fromIntegral n) :: Int) . complement . (\n -> (fromIntegral n) :: Word16) <$> (H.lookup idA values)) (H.delete location values)
 
 
-    test = foldl' (\b a -> runCommand b a) H.empty example
+    runCircuit = sort . H.toList <$> foldl' (\b a -> runCommand b a) H.empty <$> map (fromRight' . (parse parseCommand "")) <$> readInstructions
+
+    readInstructions :: IO [String]
+    readInstructions = lines <$> readFile "resource/2015/day07"
