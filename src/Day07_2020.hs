@@ -1,5 +1,6 @@
-module Day04_2020
+module Day07_2020
     (
+    runRules
     ) where
 
     import Text.ParserCombinators.Parsec
