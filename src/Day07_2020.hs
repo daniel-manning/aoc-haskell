@@ -71,6 +71,3 @@ module Day07_2020
 
     readRules :: IO [String]
     readRules = lines <$> readFile "resource/2020/day07"
-
-
-
