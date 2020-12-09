@@ -5,13 +5,12 @@ module Day07_2015
     import Data.Bits
     import qualified Data.HashMap.Strict as H
     import Control.Applicative (liftA2)
-    import Data.Maybe (fromJust)
-    import Data.List (foldl', sort)
+    import Data.Maybe (fromJust, isJust)
+    import Data.List (foldl', sort, find)
     import Data.Word
     import Data.Char (digitToInt)
     import Text.ParserCombinators.Parsec
     import Data.Either.Combinators
-    --import Data.Either(isLeft)
 
     data Input = Node String | Signal Int deriving Show
 
@@ -76,12 +75,6 @@ module Day07_2015
         location <- many1 letter
         return $ Command instruction location
 
-    --Need to sort commands so their input list appear after their definition
-    --sortCommands :: [Command] -> [String] -> [String] -> [Command]
-    --sortCommands list definedList = filter (\Command instruction _ ->   instruction case of)
-
-
-
     getValue :: Input -> H.HashMap String Int -> Maybe Int
     getValue (Signal value) values = Just value
     getValue (Node name) values = H.lookup name values
@@ -94,9 +87,20 @@ module Day07_2015
     runCommand values (Command (RSHIFT n idA) location) = H.insert location (fromJust $ flip shiftR n <$> (H.lookup idA values)) (H.delete location values)
     runCommand values (Command (NOT idA) location) = H.insert location (fromJust $ (\n -> (fromIntegral n) :: Int) . complement . (\n -> (fromIntegral n) :: Word16) <$> (H.lookup idA values)) (H.delete location values)
 
-    runCircuit = sort . H.toList <$> foldl' (\b a -> runCommand b a) H.empty <$> map (fromRight' . (parse parseCommand "")) <$> readInstructions
+    runCommandIfReady :: H.HashMap String Int -> [Command] -> [Command] -> H.HashMap String Int
+    runCommandIfReady values [] [] = values
+    runCommandIfReady values notReady [] = runCommandIfReady values [] notReady
+    runCommandIfReady values notReady ((Command (ASSIGN input) location): cs) = if isJust (getValue input values) then runCommandIfReady (runCommand values (Command (ASSIGN input) location)) notReady cs else  runCommandIfReady values ((Command (ASSIGN input) location): notReady) cs
+    runCommandIfReady values notReady ((Command (OR idA idB) location):cs) = if (isJust (H.lookup idA values)) && (isJust (H.lookup idB values)) then runCommandIfReady (runCommand values (Command (OR idA idB) location)) notReady cs else  runCommandIfReady values ((Command (OR idA idB) location): notReady) cs
+    runCommandIfReady values notReady ((Command (AND input idB) location):cs) = if (isJust (getValue input values)) && (isJust (H.lookup idB values)) then runCommandIfReady (runCommand values (Command (AND input idB) location)) notReady cs else  runCommandIfReady values ((Command (AND input idB) location): notReady) cs
+    runCommandIfReady values notReady ((Command (LSHIFT n idA) location):cs) = if (isJust (H.lookup idA values)) then runCommandIfReady (runCommand values (Command (LSHIFT n idA) location)) notReady cs else  runCommandIfReady values ((Command (LSHIFT n idA) location): notReady) cs
+    runCommandIfReady values notReady ((Command (RSHIFT n idA) location):cs) = if (isJust (H.lookup idA values)) then runCommandIfReady (runCommand values (Command (RSHIFT n idA) location)) notReady cs else  runCommandIfReady values ((Command (RSHIFT n idA) location): notReady) cs
+    runCommandIfReady values notReady ((Command (NOT idA) location):cs) = if (isJust (H.lookup idA values)) then runCommandIfReady (runCommand values (Command (NOT idA) location)) notReady cs else  runCommandIfReady values ((Command (NOT idA) location): notReady) cs
 
-    test = {-sortCommands .-} map (fromRight' . (parse parseCommand "")) <$> readInstructions
+    runCircuit = sort . H.toList <$> foldl' (\b a -> runCommand b a) H.empty <$> map (fromRight' . (parse parseCommand "")) <$> readInstructions
+    runCircuitWaitingForInputs = sort . H.toList <$> runCommandIfReady H.empty [] <$> map (fromRight' . (parse parseCommand "")) <$> readInstructions
+
+    day07Pt1 = snd . fromJust . find (\l -> fst l == "a") <$> runCircuitWaitingForInputs
 
     readInstructions :: IO [String]
     readInstructions = lines <$> readFile "resource/2015/day07"
