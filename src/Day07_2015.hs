@@ -99,8 +99,13 @@ module Day07_2015
 
     runCircuit = sort . H.toList <$> foldl' (\b a -> runCommand b a) H.empty <$> map (fromRight' . (parse parseCommand "")) <$> readInstructions
     runCircuitWaitingForInputs = sort . H.toList <$> runCommandIfReady H.empty [] <$> map (fromRight' . (parse parseCommand "")) <$> readInstructions
+    runCircuitWaitingForInputsPt2 = sort . H.toList <$> runCommandIfReady H.empty [] <$> map (fromRight' . (parse parseCommand "")) <$> readInstructionsPt2
 
     day07Pt1 = snd . fromJust . find (\l -> fst l == "a") <$> runCircuitWaitingForInputs
+    day07Pt2 = snd . fromJust . find (\l -> fst l == "a") <$> runCircuitWaitingForInputsPt2
 
     readInstructions :: IO [String]
     readInstructions = lines <$> readFile "resource/2015/day07"
+
+    readInstructionsPt2 :: IO [String]
+    readInstructionsPt2 = lines <$> readFile "resource/2015/day07_pt2"
