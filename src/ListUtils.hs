@@ -5,7 +5,14 @@ module ListUtils
      Position(..)
     ) where
 
+    import Data.Hashable
+
     data Position = Position Int Int deriving (Eq, Show)
+
+    instance Hashable Position where
+        hashWithSalt s (Position x y) =
+            s `hashWithSalt`
+            x `hashWithSalt` y
 
     convertToPositionList :: [[a]] -> [(Position, a)]
     convertToPositionList list = (\l -> map (\x -> (Position (fst x) (fst l), snd x)) $ zip [0..] (snd l))  =<< zip [0..] list

@@ -32,6 +32,7 @@ dependencies:
 - MissingH
 - containers
 - unordered-containers
+- hashable
 
 library:
   source-dirs: src
