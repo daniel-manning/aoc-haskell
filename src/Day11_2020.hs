@@ -8,7 +8,8 @@ module Day11_2020
     import Text.ParserCombinators.Parsec
     import Data.Either.Combinators
     import Data.List (find)
-    import Data.Maybe (fromJust, isJust, listToMaybe)
+    import Data.Maybe (fromJust, isJust, listToMaybe, catMaybes)
+    import Data.Bifunctor (second)
     import qualified Data.HashMap.Strict as H
 
     data Space = Chair | Filled | Floor deriving (Eq, Show)
@@ -32,13 +33,13 @@ module Day11_2020
 
 
     countNeighboursOfType :: Position -> Space -> H.HashMap Position Space -> Int
-    countNeighboursOfType (Position xp yp) space grid =  length . filter (== space) . map fromJust $ filter isJust neighbourSpaces
+    countNeighboursOfType (Position xp yp) space grid =  (length . filter (== space)) (catMaybes neighbourSpaces)
             where
           neighbourSpaces = map (\(nX, nY) -> H.lookup (Position (xp + nX) (yp + nY)) grid) neighbours
 
 
     evolvePosition :: (Position -> Space -> H.HashMap Position Space -> Int) -> Position -> Space -> H.HashMap Position Space -> Space
-    evolvePosition f p Chair grid | (f p Filled grid) == 0 = Filled
+    evolvePosition f p Chair grid | f p Filled grid == 0 = Filled
                                 | otherwise = Chair
     evolvePosition f p Filled grid | f p Filled grid >= 4 = Chair
                                  | otherwise = Filled
@@ -54,27 +55,29 @@ module Day11_2020
                          where
                              k = evaluate grid
 
-    countFilledChairs grid = length $ H.filter (\s -> s == Filled) grid
+    countFilledChairs grid = length $ H.filter (== Filled) grid
 
-    day11Pt1 = countFilledChairs . (loopUntilStable evolveModel) <$> setupGrid
+    day11Pt1 = countFilledChairs . loopUntilStable evolveModel <$> setupGrid
 
     ----------
 
     searchInDirection :: Position -> (Int, Int) -> H.HashMap Position Space -> Maybe (Position, Space)
-    searchInDirection (Position px py) (x, y) grid = listToMaybe $ map (\(p,s) -> (p, fromJust s)) $ filter (\(p,s) -> isJust s &&  (s == Just Filled || s == Just Chair)) $ map (\k -> (Position (px + k*x) (py + k*y), (H.lookup (Position (px + k*x) (py + k*y)) grid))) [1..kMax]
+    searchInDirection (Position px py) (x, y) grid = listToMaybe $ map (second fromJust) $ filter (\(p,s) -> isJust s &&  (s == Just Filled || s == Just Chair)) $ map (\k -> (Position (px + k*x) (py + k*y), (H.lookup (Position (px + k*x) (py + k*y)) grid))) [1..kMax]
         where
             xMax = maximum $ map (\(Position x _) -> x ) $ H.keys grid
             yMax = maximum $ map (\(Position _ y) -> y ) $ H.keys grid
-            kMax = if (y == 0) then max ((xMax - px )`div` x) (- px `div` x) else if (x == 0) then max ((yMax -py) `div` y) (- py `div` y) else max (max ((xMax - px )`div` x) (- px `div` x)) (max ((yMax -py) `div` y) (- py `div` y))
+            kMax | y == 0 = max ((xMax - px )`div` x) (- px `div` x) 
+                 | x == 0 = max ((yMax -py) `div` y) (- py `div` y) 
+                 | otherwise = max (max ((xMax - px )`div` x) (- px `div` x)) (max ((yMax -py) `div` y) (- py `div` y))
 
 
     countVisibleNeighboursOfType :: Position -> Space -> H.HashMap Position Space -> Int
-    countVisibleNeighboursOfType (Position xp yp) space grid =  length $ filter (\(_, s)-> s == space) $ map fromJust $ filter isJust neighbourSpaces
+    countVisibleNeighboursOfType (Position xp yp) space grid =  length $ filter (\(_, s)-> s == space) $ catMaybes neighbourSpaces
         where
           neighbourSpaces = map (\(nx, ny) ->  searchInDirection (Position xp yp) (nx, ny) grid) neighbours
 
     evolveNewModelPosition :: (Position -> Space -> H.HashMap Position Space -> Int) -> Position -> Space -> H.HashMap Position Space -> Space
-    evolveNewModelPosition f p Chair grid | (f p Filled grid) == 0 = Filled
+    evolveNewModelPosition f p Chair grid | f p Filled grid == 0 = Filled
                                 | otherwise = Chair
     evolveNewModelPosition f p Filled grid | f p Filled grid >= 5 = Chair
                                  | otherwise = Filled
@@ -83,12 +86,12 @@ module Day11_2020
     evolveNewModel :: H.HashMap Position Space -> H.HashMap Position Space
     evolveNewModel grid = H.mapWithKey (\p s -> evolveNewModelPosition countVisibleNeighboursOfType p s grid) grid
 
-    day11Pt2 = countFilledChairs . (loopUntilStable evolveNewModel) <$> setupGrid
+    day11Pt2 = countFilledChairs . loopUntilStable evolveNewModel <$> setupGrid
 
     ---------
 
     setupGrid :: IO (H.HashMap Position Space)
-    setupGrid = H.fromList . map (\x -> (fst x, (fromRight' $ (parse parseSpace "" (snd x))))) . map (\x -> (fst x, [snd x])) . convertToPositionList <$> readLayout
+    setupGrid = H.fromList . map ((\x -> (fst x, fromRight' $ parse parseSpace "" (snd x))) . (\x -> (fst x, [snd x]))) . convertToPositionList <$> readLayout
 
     readLayout :: IO [String]
     readLayout = lines <$> readFile "resource/2020/day11"
