@@ -62,7 +62,7 @@ module Day11_2020
     ----------
 
     searchInDirection :: Position -> (Int, Int) -> H.HashMap Position Space -> Maybe (Position, Space)
-    searchInDirection (Position px py) (x, y) grid = listToMaybe $ map (second fromJust) $ filter (\(p,s) -> isJust s &&  (s == Just Filled || s == Just Chair)) $ map (\k -> (Position (px + k*x) (py + k*y), (H.lookup (Position (px + k*x) (py + k*y)) grid))) [1..kMax]
+    searchInDirection (Position px py) (x, y) grid = listToMaybe $ map (second fromJust) $ filter (\(p,s) -> isJust s &&  (s == Just Filled || s == Just Chair)) $ map (\k -> (Position (px + k*x) (py + k*y), H.lookup (Position (px + k*x) (py + k*y)) grid)) [1..kMax]
         where
             xMax = maximum $ map (\(Position x _) -> x ) $ H.keys grid
             yMax = maximum $ map (\(Position _ y) -> y ) $ H.keys grid
