@@ -33,6 +33,8 @@ dependencies:
 - containers
 - unordered-containers
 - hashable
+- aeson
+- universe-base
 
 library:
   source-dirs: src
