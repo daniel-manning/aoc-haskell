@@ -1,6 +1,7 @@
 module Day11_2015
     (
-        day11Pt1
+        day11Pt1,
+        day11Pt2
     ) where
 
     import Data.Char (digitToInt, ord, chr)
@@ -33,6 +34,7 @@ module Day11_2015
     incrementString'' (c: xs) =  toChar (1 + fromChar c):xs
    
     nextPassword :: String -> String
-    nextPassword input = head $ filter validate $ iterate incrementString input
+    nextPassword input = head $ filter validate $ tail $ iterate incrementString input
 
     day11Pt1 = nextPassword "hxbxwxba"
+    day11Pt2 = nextPassword "hxbxxyzz"
