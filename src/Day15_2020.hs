@@ -1,14 +1,27 @@
 module Day15_2020
     (
+    day15Pt2
     ) where
 
-    import Data.List (elemIndex)
+    import Data.List (elemIndex, maximumBy)
     import Data.Maybe (fromMaybe)
+    import qualified Data.HashMap.Strict as H
 
-    --reverse the history list
-    considerLastNumberSpoken :: [Int] -> [Int]
-    considerLastNumberSpoken (x:xs) = (fromMaybe 0 ( (+1) <$> (x `elemIndex` xs))):(x:xs)
+    considerLastNumberCondensed :: ((Int, Int), H.HashMap Int Int) -> ((Int, Int), H.HashMap Int Int)
+    considerLastNumberCondensed ((i, lastNumber), numberMap) = ((i+1, fromMaybe 0 ((\n -> i - n)<$> foundIndex)), H.insert lastNumber i (H.delete lastNumber numberMap))
+        where
+          foundIndex = H.lookup lastNumber numberMap
+
+    times :: Int -> (a -> a) -> a -> a
+    times 0 _ k = k
+    times n f k = times (n-1) f (f k)
 
     --input = [0,3,6]
-    input = [7,12,1,0,16,2]
-    day15Pt1 = head $ last $ take (2020 - (length input) + 1) $ iterate considerLastNumberSpoken $ reverse input
+    nthNumberSpoken n input = snd $ fst $ times (n - (length input)) considerLastNumberCondensed ((snd h, fst h), updated)
+        where
+          inputFormat = zip input [1..]
+          h = maximumBy (\a b -> compare (snd a) (snd b)) inputFormat
+          updated = H.delete (fst h) (H.fromList inputFormat)
+
+    day15Pt1 = nthNumberSpoken 2020 [7,12,1,0,16,2]
+    day15Pt2 = nthNumberSpoken 30000000 [0,3,6]
