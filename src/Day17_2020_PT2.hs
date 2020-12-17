@@ -1,7 +1,11 @@
+{-# LANGUAGE TupleSections #-}
+
 module Day17_2020_PT2
     (
     day17Pt2
     ) where
+
+    
 
     import qualified Data.HashMap.Strict as H
     import Text.ParserCombinators.Parsec
@@ -51,12 +55,12 @@ module Day17_2020_PT2
         where
           neighbourSpaces = map (\(nX, nY, nZ, nW) -> (Position (x + nX) (y + nY) (z + nZ) (w + nW), H.lookup (Position (x + nX) (y + nY) (z + nZ) (w + nW)) grid)) neighbours
 
-    inactiveLayer grid = H.fromList $ map (\p -> (p, Inactive)) .  nub . (inactiveNeighbourhoodAboutPoint grid) =<< (H.keys $ H.filter (== Active) grid)
+    inactiveLayer grid = H.fromList $ map (, Inactive) .  nub . inactiveNeighbourhoodAboutPoint grid =<< H.keys (H.filter (== Active) grid)
     ----
-    evolveModel grid = H.filter (== Active) $ H.mapWithKey (\p s -> evolvePosition countNeighboursOfType p s grid) (grid `H.union` (inactiveLayer grid))
+    evolveModel grid = H.filter (== Active) $ H.mapWithKey (\p s -> evolvePosition countNeighboursOfType p s grid) (grid `H.union` inactiveLayer grid)
 
     convertToPositionList :: [[a]] -> [(Position, a)]
-    convertToPositionList list = (\l -> map (\x -> (Position (fst x) (fst l) 0 0, snd x)) $ zip [0..] (snd l))  =<< zip [0..] list
+    convertToPositionList list = (\l -> zipWith (curry (\x -> (Position (fst x) (fst l) 0 0, snd x))) [0..] (snd l))  =<< zip [0..] list
 
     countActiveSpaces grid = length $ H.filter (== Active) grid
 
@@ -73,9 +77,9 @@ module Day17_2020_PT2
     readLayout = lines <$> readFile "resource/2020/day17"
 
     {--
-    2332
+        2332
 
-    real	0m3.677s
-    user	0m6.278s
-    sys	0m1.823s
+        real	0m1.036s
+        user	0m1.291s
+        sys	0m0.258s
     --}
