@@ -1,6 +1,6 @@
 module Main where
 
-import Day15_2020
+import Day17_2020_PT2
 
 main :: IO ()
-main = putStrLn $ show day15Pt2
+main = putStrLn . show =<< day17Pt2

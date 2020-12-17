@@ -7,7 +7,7 @@ module Day15_2020
     import Data.Maybe (fromMaybe)
     import qualified Data.HashMap.Strict as H
 
-    considerLastNumberCondensed :: ((Int, Int), H.HashMap !Int !Int) -> ((Int, Int), H.HashMap !Int !Int)
+    considerLastNumberCondensed :: ((Int, Int), H.HashMap Int Int) -> ((Int, Int), H.HashMap Int Int)
     considerLastNumberCondensed ((i, lastNumber), numberMap) = ((i+1, maybe 0 (i -) foundIndex), H.insert lastNumber i (H.delete lastNumber numberMap))
         where
           foundIndex = H.lookup lastNumber numberMap
