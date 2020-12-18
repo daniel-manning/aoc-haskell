@@ -22,9 +22,9 @@ module Day11_2015
     passwordIntFormat x = foldl' (\a b -> 27*a + b) 0 (map fromChar x)
 
     intToPassword n = reverse $ intToPassword'' n
-    intToPassword'' n | n <= 27 = [toChar ( (n `mod` 27))]
+    intToPassword'' n | n <= 27 = [toChar (n `mod` 27)]
                       | n `mod` 27 == 0 = intToPassword'' (n `div` 27)
-                      | otherwise = toChar ( (n `mod` 27)) : intToPassword'' (n `div` 27)
+                      | otherwise = toChar (n `mod` 27) : intToPassword'' (n `div` 27)
 
 
     incrementString x =  reverse . incrementString'' $ reverse x

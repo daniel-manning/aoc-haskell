@@ -83,23 +83,23 @@ module Day07_2015
     runCommand values (Command (ASSIGN input) location) = H.insert location (fromJust $ getValue input values) values
     runCommand values (Command (OR idA idB) location) = H.insert location (fromJust $ liftA2 (.|.) (H.lookup idA values) (H.lookup idB values)) (H.delete location values)
     runCommand values (Command (AND input idB) location) = H.insert location (fromJust $ liftA2 (.&.) (getValue input values) (H.lookup idB values)) (H.delete location values)
-    runCommand values (Command (LSHIFT n idA) location) = H.insert location (fromJust $ flip shiftL n <$> (H.lookup idA values)) (H.delete location values)
-    runCommand values (Command (RSHIFT n idA) location) = H.insert location (fromJust $ flip shiftR n <$> (H.lookup idA values)) (H.delete location values)
-    runCommand values (Command (NOT idA) location) = H.insert location (fromJust $ (\n -> (fromIntegral n) :: Int) . complement . (\n -> (fromIntegral n) :: Word16) <$> (H.lookup idA values)) (H.delete location values)
+    runCommand values (Command (LSHIFT n idA) location) = H.insert location (fromJust $ flip shiftL n <$> H.lookup idA values) (H.delete location values)
+    runCommand values (Command (RSHIFT n idA) location) = H.insert location (fromJust $ flip shiftR n <$> H.lookup idA values) (H.delete location values)
+    runCommand values (Command (NOT idA) location) = H.insert location (fromJust $ (\n -> fromIntegral n :: Int) . complement . (\n -> fromIntegral n :: Word16) <$> H.lookup idA values) (H.delete location values)
 
     runCommandIfReady :: H.HashMap String Int -> [Command] -> [Command] -> H.HashMap String Int
     runCommandIfReady values [] [] = values
     runCommandIfReady values notReady [] = runCommandIfReady values [] notReady
-    runCommandIfReady values notReady ((Command (ASSIGN input) location): cs) = if isJust (getValue input values) then runCommandIfReady (runCommand values (Command (ASSIGN input) location)) notReady cs else  runCommandIfReady values ((Command (ASSIGN input) location): notReady) cs
-    runCommandIfReady values notReady ((Command (OR idA idB) location):cs) = if (isJust (H.lookup idA values)) && (isJust (H.lookup idB values)) then runCommandIfReady (runCommand values (Command (OR idA idB) location)) notReady cs else  runCommandIfReady values ((Command (OR idA idB) location): notReady) cs
-    runCommandIfReady values notReady ((Command (AND input idB) location):cs) = if (isJust (getValue input values)) && (isJust (H.lookup idB values)) then runCommandIfReady (runCommand values (Command (AND input idB) location)) notReady cs else  runCommandIfReady values ((Command (AND input idB) location): notReady) cs
-    runCommandIfReady values notReady ((Command (LSHIFT n idA) location):cs) = if (isJust (H.lookup idA values)) then runCommandIfReady (runCommand values (Command (LSHIFT n idA) location)) notReady cs else  runCommandIfReady values ((Command (LSHIFT n idA) location): notReady) cs
-    runCommandIfReady values notReady ((Command (RSHIFT n idA) location):cs) = if (isJust (H.lookup idA values)) then runCommandIfReady (runCommand values (Command (RSHIFT n idA) location)) notReady cs else  runCommandIfReady values ((Command (RSHIFT n idA) location): notReady) cs
-    runCommandIfReady values notReady ((Command (NOT idA) location):cs) = if (isJust (H.lookup idA values)) then runCommandIfReady (runCommand values (Command (NOT idA) location)) notReady cs else  runCommandIfReady values ((Command (NOT idA) location): notReady) cs
+    runCommandIfReady values notReady ((Command (ASSIGN input) location): cs) = if isJust (getValue input values) then runCommandIfReady (runCommand values (Command (ASSIGN input) location)) notReady cs else  runCommandIfReady values (Command (ASSIGN input) location: notReady) cs
+    runCommandIfReady values notReady ((Command (OR idA idB) location):cs) = if isJust (H.lookup idA values) && isJust (H.lookup idB values) then runCommandIfReady (runCommand values (Command (OR idA idB) location)) notReady cs else  runCommandIfReady values (Command (OR idA idB) location: notReady) cs
+    runCommandIfReady values notReady ((Command (AND input idB) location):cs) = if isJust (getValue input values) && isJust (H.lookup idB values) then runCommandIfReady (runCommand values (Command (AND input idB) location)) notReady cs else  runCommandIfReady values (Command (AND input idB) location: notReady) cs
+    runCommandIfReady values notReady ((Command (LSHIFT n idA) location):cs) = if isJust (H.lookup idA values) then runCommandIfReady (runCommand values (Command (LSHIFT n idA) location)) notReady cs else  runCommandIfReady values (Command (LSHIFT n idA) location: notReady) cs
+    runCommandIfReady values notReady ((Command (RSHIFT n idA) location):cs) = if isJust (H.lookup idA values) then runCommandIfReady (runCommand values (Command (RSHIFT n idA) location)) notReady cs else  runCommandIfReady values (Command (RSHIFT n idA) location: notReady) cs
+    runCommandIfReady values notReady ((Command (NOT idA) location):cs) = if isJust (H.lookup idA values) then runCommandIfReady (runCommand values (Command (NOT idA) location)) notReady cs else  runCommandIfReady values (Command (NOT idA) location: notReady) cs
 
-    runCircuit = sort . H.toList <$> foldl' (\b a -> runCommand b a) H.empty <$> map (fromRight' . (parse parseCommand "")) <$> readInstructions
-    runCircuitWaitingForInputs = sort . H.toList <$> runCommandIfReady H.empty [] <$> map (fromRight' . (parse parseCommand "")) <$> readInstructions
-    runCircuitWaitingForInputsPt2 = sort . H.toList <$> runCommandIfReady H.empty [] <$> map (fromRight' . (parse parseCommand "")) <$> readInstructionsPt2
+    runCircuit = (sort . H.toList <$> foldl' runCommand H.empty) . map (fromRight' . parse parseCommand "") <$> readInstructions
+    runCircuitWaitingForInputs = (sort . H.toList <$> runCommandIfReady H.empty []) . map (fromRight' . parse parseCommand "") <$> readInstructions
+    runCircuitWaitingForInputsPt2 = (sort . H.toList <$> runCommandIfReady H.empty []) . map (fromRight' . parse parseCommand "") <$> readInstructionsPt2
 
     day07Pt1 = snd . fromJust . find (\l -> fst l == "a") <$> runCircuitWaitingForInputs
     day07Pt2 = snd . fromJust . find (\l -> fst l == "a") <$> runCircuitWaitingForInputsPt2

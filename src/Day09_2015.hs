@@ -20,7 +20,7 @@ module Day09_2015
             return $ Edge a b (read distance)
 
     edges :: IO [Edge]
-    edges = map (fromRight' . (parse parseEdge "")) <$> readEdges
+    edges = map (fromRight' . parse parseEdge "") <$> readEdges
 
     vertices :: [Edge] -> [String]
     vertices edgeList = nub $ sort $ (\(Edge a b _ ) -> [a,b]) =<< edgeList
@@ -34,8 +34,8 @@ module Day09_2015
     totalDistance :: [Edge] -> Int
     totalDistance edgeList = sum $ map (\(Edge _ _ n) -> n) edgeList
 
-    day09Pt1 = (\e -> minimum . map totalDistance . map fromJust . filter isJust . map sequence $ map (\p -> resolvePath p e) (solve e)) <$> edges
-    day09Pt2 = (\e -> maximum . map totalDistance . map fromJust . filter isJust . map sequence $ map (\p -> resolvePath p e) (solve e)) <$> edges
+    day09Pt1 = (\e -> (minimum . map (totalDistance . fromJust) . filter isJust) (map (sequence . (`resolvePath` e)) (solve e))) <$> edges
+    day09Pt2 = (\e -> (maximum . map (totalDistance . fromJust) . filter isJust) (map (sequence . (`resolvePath` e)) (solve e))) <$> edges
 
     readEdges :: IO [String]
     readEdges = lines <$> readFile "resource/2015/day09"

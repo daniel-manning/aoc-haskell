@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 module Day17_2020
     (
     day17Pt1
@@ -50,12 +52,12 @@ module Day17_2020
         where
           neighbourSpaces = map (\(nX, nY, nZ) -> (Position (x + nX) (y + nY) (z + nZ), H.lookup (Position (x + nX) (y + nY) (z + nZ)) grid)) neighbours
 
-    inactiveLayer grid = H.fromList $ map (\p -> (p, Inactive)) .  nub . (inactiveNeighbourhoodAboutPoint grid) =<< (H.keys $ H.filter (== Active) grid)
+    inactiveLayer grid = H.fromList $ map (, Inactive) .  nub . inactiveNeighbourhoodAboutPoint grid =<< H.keys (H.filter (== Active) grid)
     ----
-    evolveModel grid = H.mapWithKey (\p s -> evolvePosition countNeighboursOfType p s grid) (grid `H.union` (inactiveLayer grid))
+    evolveModel grid = H.mapWithKey (\p s -> evolvePosition countNeighboursOfType p s grid) (grid `H.union` inactiveLayer grid)
 
     convertToPositionList :: [[a]] -> [(Position, a)]
-    convertToPositionList list = (\l -> map (\x -> (Position (fst x) (fst l) 0, snd x)) $ zip [0..] (snd l))  =<< zip [0..] list
+    convertToPositionList list = (\l -> zipWith (curry (\ x -> (Position (fst x) (fst l) 0, snd x))) [0..]  (snd l))  =<< zip [0..] list
 
     countActiveSpaces grid = length $ H.filter (== Active) grid
 

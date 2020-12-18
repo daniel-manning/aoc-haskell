@@ -52,11 +52,11 @@ module Day13_2020
        in (g, t - (b `div` a) * s, s)
 
 
-    chineseRemainderTheorem list = ((sum yList) `mod` m, m)
+    chineseRemainderTheorem list = (sum yList `mod` m, m)
         where
             m = product $ map snd list
-            mList = map (\n -> m `div` n) $ map snd list
-            yList = map (\(a,b,c,(d,y,f)) -> c*a*(y `mod` b)) $ map (\(a,(c, b)) -> (a, b, c, eGCD a b)) $ zip mList list
+            mList = map ((\n -> m `div` n) . snd) list
+            yList = zipWith (curry ((\ (a, b, c, (d, y, f)) -> c * a * (y `mod` b)) . (\ (a, (c, b)) -> (a, b, c, eGCD a b)))) mList list
 
 
     

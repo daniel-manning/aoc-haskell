@@ -27,9 +27,7 @@ module Day07_2020
         return []
 
     parseBagList :: Parser [(Int, String)]
-    parseBagList = do
-        bags <- sepBy parseNumAndBagColour (char ',' *> space)
-        return bags
+    parseBagList = do sepBy parseNumAndBagColour (char ',' *> space)
 
     parseNumAndBagColour :: Parser (Int, String)
     parseNumAndBagColour = do
@@ -51,11 +49,11 @@ module Day07_2020
 
     filterDown :: [BagRule] -> BagRule ->  [String]
     filterDown _ (BagRule colour [] ) = []
-    filterDown bagRules (BagRule colour innerBags) = (map snd innerBags) ++ ((\b -> filterDown bagRules $ fromJust $ find (\(BagRule c ib) -> c == (snd b)) bagRules ) =<< innerBags)
+    filterDown bagRules (BagRule colour innerBags) = map snd innerBags ++ ((\b -> filterDown bagRules $ fromJust $ find (\(BagRule c ib) -> c == snd b) bagRules ) =<< innerBags)
 
     countDown :: BagRule -> [BagRule] -> Int
     countDown (BagRule colour [] ) _ = 0
-    countDown (BagRule colour innerBags) bagRules = sum $ map (\bag -> (fst bag) * (1 + countDown (getBagRule bagRules (snd bag)) bagRules)) innerBags
+    countDown (BagRule colour innerBags) bagRules = sum $ map (\bag -> fst bag * (1 + countDown (getBagRule bagRules (snd bag)) bagRules)) innerBags
         where
          getBagRule bagRules bagName = fromJust $ find (\(BagRule c ib) -> c == bagName) bagRules
 
@@ -63,7 +61,7 @@ module Day07_2020
     findName bagName rules = fromJust $ find (\(BagRule c ib) -> c == bagName) rules
 
     countSubBags :: String -> IO Int
-    countSubBags bagName = (\rules -> countDown (findName bagName rules) rules) <$> map (fromRight' . parse parseBagRule "") <$> readRules
+    countSubBags bagName = (\ rules -> countDown (findName bagName rules) rules) . map (fromRight' . parse parseBagRule "") <$> readRules
 
     findAllSubBags rules = map (filterDown rules) rules
 

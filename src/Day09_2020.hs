@@ -6,7 +6,7 @@ module Day09_2020
     import ListUtils (window)
 
     validate :: Int -> [Int] -> Bool
-    validate n numbers = not ( null (filter (\l ->(n - l) `elem` (delete l numbers)) numbers))
+    validate n numbers = any (\ l -> (n - l) `elem` delete l numbers) numbers
 
     gatherPreamble :: Int -> [Int] -> ([Int], Int)
     gatherPreamble n numbers = (take n numbers, numbers !! max 0 n)

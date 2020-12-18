@@ -9,12 +9,12 @@ module Day10_2020
     gapsBetweenData (x:y:xs) = (y-x) : gapsBetweenData (y:xs)
 
     itemsThatCanBeDropped :: [Int] -> [Int]
-    itemsThatCanBeDropped [x,y,z] = if (z-x <= 3) then [y] else []
-    itemsThatCanBeDropped (x:y:z:xs) = if (z-x <= 3) then y:itemsThatCanBeDropped(y:z:xs) else itemsThatCanBeDropped(y:z:xs)
+    itemsThatCanBeDropped [x,y,z] = [y | z-x <= 3]
+    itemsThatCanBeDropped (x:y:z:xs) = if z-x <= 3 then y:itemsThatCanBeDropped(y:z:xs) else itemsThatCanBeDropped(y:z:xs)
 
     --(\x -> (1 + fst.head x) * (1 + fst.last x)) $
     day10Pt1 =  map (\x -> (length x, nub x)) . group . sort . gapsBetweenData . sort <$> readNumbers
-    day10Pt2 =  product . map (\x -> droppablePerms (fst x)) . filter (\n -> snd n /= 3) . map (\x -> (length x, head $ nub x)) . group . gapsBetweenData . sort <$> readNumbers
+    day10Pt2 =  product . map (droppablePerms . fst) . filter (\n -> snd n /= 3) . map (\x -> (length x, head $ nub x)) . group . gapsBetweenData . sort <$> readNumbers
 
     droppablePerms 1 = 1
     droppablePerms 2 = 2

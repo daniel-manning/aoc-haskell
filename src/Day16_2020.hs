@@ -57,19 +57,19 @@ module Day16_2020
 
     groupBetweenBlankLines'' :: [String] -> [String] -> [[String]]
     groupBetweenBlankLines'' [] n = [n]
-    groupBetweenBlankLines'' (x:xs) n | length x == 0 = n : groupBetweenBlankLines'' xs []
+    groupBetweenBlankLines'' (x:xs) n | null x = n : groupBetweenBlankLines'' xs []
                                       | otherwise = groupBetweenBlankLines'' xs (x : n)
 
 
     findInvalidData :: ([Field], Ticket, [Ticket]) -> [Integer]
-    findInvalidData (f, t, ts) = (checkTicketsForInvalidData f) =<< ts
+    findInvalidData (f, t, ts) = checkTicketsForInvalidData f =<< ts
 
     day16Pt1 = sum . findInvalidData <$> ticketData
 
 -----
 
     filterInvalidData :: ([Field], Ticket, [Ticket]) -> ([Field], Ticket, [Ticket])
-    filterInvalidData (f, t, ts) = (f, t, filter (\t -> (length $ checkTicketsForInvalidData f t) == 0) ts)
+    filterInvalidData (f, t, ts) = (f, t, filter (null . checkTicketsForInvalidData f) ts)
 
 
     groupedFields :: [Ticket] -> [[Integer]]
@@ -78,7 +78,7 @@ module Day16_2020
     groupFieldData (f, t, ts) = (f, t, groupedFields ts)
 
     findFieldsMatchingData :: [Field] -> [Integer] -> [Field]
-    findFieldsMatchingData fs is = filter (\f -> all (\n -> dataInRange f n) is) fs
+    findFieldsMatchingData fs is = filter (\f -> all (dataInRange f) is) fs
 
     whileLeft :: ([Either a b] -> [Either a b]) -> [Either a b] -> [Either a b]
     whileLeft f a | any isLeft a = whileLeft f $! f a
@@ -88,13 +88,13 @@ module Day16_2020
     reduceOptions as = map fromRight' $! whileLeft (reduceOptions'' []) (map Left as)
 
     removeFromLeftList :: (Eq a) => a -> [Either [a] a] -> [Either [a] a]
-    removeFromLeftList a xs = map (bimap (\l -> delete a l) id) xs
+    removeFromLeftList a = map (first (delete a))
 
     reduceOptions'' :: (Eq a) => [Either [a] a] -> [Either [a] a] -> [Either [a] a]
     reduceOptions'' xs [] = xs
-    reduceOptions'' xs ((Right a): as) = reduceOptions'' (xs ++ [(Right a)]) as
-    reduceOptions'' xs ((Left a): as) | (length a) == 1 =  reduceOptions'' ((removeFromLeftList (head a) xs) ++ [(Right (head a))]) (removeFromLeftList (head a) as)
-                                      | otherwise       = reduceOptions'' (xs ++ [(Left a)]) as
+    reduceOptions'' xs ((Right a): as) = reduceOptions'' (xs ++ [Right a]) as
+    reduceOptions'' xs ((Left a): as) | length a == 1 =  reduceOptions'' (removeFromLeftList (head a) xs ++ [Right (head a)]) (removeFromLeftList (head a) as)
+                                      | otherwise       = reduceOptions'' (xs ++ [Left a]) as
 
     findMatchingColumn fs is = reduceOptions $ map (findFieldsMatchingData fs) is
 

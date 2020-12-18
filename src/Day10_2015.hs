@@ -7,7 +7,7 @@ module Day10_2015
     import Data.List (group, nub, foldl1')
 
     lookAndSay :: [Int] -> [Int]
-    lookAndSay s = (\x -> (length x) : nub x) =<< group s
+    lookAndSay s = (\x -> length x : nub x) =<< group s
 
     applyTimes n s = last $ map length $ take (n+1) $ iterate lookAndSay s
 

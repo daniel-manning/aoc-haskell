@@ -33,21 +33,19 @@ module Day05_2020
     findColumn input = sortUntilConvergence (Range 0 7) (map toSection input)
 
     findSeat :: String -> Maybe Seat
-    findSeat input = pure Seat
-                     <*> findRow (take 7 input)
+    findSeat input = (Seat <$> findRow (take 7 input))
                      <*> findColumn (take 3 $ drop 7 input)
 
     calculateSeatID :: Seat -> Int
     calculateSeatID (Seat r c) = r*8 + c
 
-    --runBoardingPasses = ((\a -> calculateSeatID (fromJust a)) <$> findSeat) <$> readBoardingPasses
-    runBoardingPasses = fromJust <$> (maximum . map calculateSeatID <$>) <$> (sequence <$> map findSeat) <$> readBoardingPasses
-    sortBoardingPasses = fromJust <$> ( findSingleUnoccupiedSeat . findEmptySeats . sort . map calculateSeatID <$>) <$> (sequence <$> map findSeat) <$> readBoardingPasses
+    day05Part1 = (fromJust <$> (maximum . map calculateSeatID <$>)) . (sequence <$> map findSeat) <$> readBoardingPasses
+    day05Part2 = (fromJust <$> (findSingleUnoccupiedSeat . findEmptySeats . sort . map calculateSeatID <$>)) . (sequence <$> map findSeat) <$> readBoardingPasses
 
     allSeatIDsBoard = Set.fromList [8..1015]
 
     findEmptySeats :: [Int] -> [Int]
-    findEmptySeats seats = Set.toList $ allSeatIDsBoard Set.\\ (Set.fromList seats)
+    findEmptySeats seats = Set.toList $ allSeatIDsBoard Set.\\ Set.fromList seats
 
     findSingleUnoccupiedSeat :: [Int] -> Int
     findSingleUnoccupiedSeat [] = -1

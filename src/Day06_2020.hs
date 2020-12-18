@@ -11,15 +11,15 @@ module Day06_2020
 
     groupBetweenBlankLines'' :: [String] -> [String] -> [[String]]
     groupBetweenBlankLines'' [] n = [n]
-    groupBetweenBlankLines'' (x:xs) n | length x == 0 = n : groupBetweenBlankLines'' xs []
+    groupBetweenBlankLines'' (x:xs) n | null x = n : groupBetweenBlankLines'' xs []
                                       | otherwise = groupBetweenBlankLines'' xs (x : n)
 
-    day06pt1 = sum <$> (map (length . nub . foldr (++) "") . groupBetweenBlankLines) <$> readAnswers
-    day06pt2 = sum <$> (map (length . elementsInAllLists) . groupBetweenBlankLines) <$> readAnswers
+    day06pt1 = sum . map (length . nub . concat) . groupBetweenBlankLines <$> readAnswers
+    day06pt2 = sum . map (length . elementsInAllLists) . groupBetweenBlankLines <$> readAnswers
 
 
     elementsInAllLists :: (Ord a) => [[a]] -> [a]
-    elementsInAllLists list = Set.toList $ foldl1' (\a b -> a `Set.intersection` b) $ map Set.fromList list
+    elementsInAllLists list = Set.toList $ foldl1' Set.intersection $ map Set.fromList list
 
     readAnswers :: IO [String]
     readAnswers = lines <$> readFile "resource/2020/day06"
