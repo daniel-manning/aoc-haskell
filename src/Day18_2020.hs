@@ -58,8 +58,6 @@ module Day18_2020
     --need to walk through the expression and do the sums first
     doSumsFirst :: [Expr] -> [Expr]
     doSumsFirst [] = []
-    doSumsFirst [x,Add,z]    = [Val (evaluate Add x z)]
-    doSumsFirst [x,y,z]      = [x,y,z]
     doSumsFirst (x:Add:z:xs) = Val (evaluate Add x z) : xs
     doSumsFirst (x:Multiply:z:xs) = x:Multiply: doSumsFirst (z:xs)
 
