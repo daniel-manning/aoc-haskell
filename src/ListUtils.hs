@@ -2,7 +2,8 @@ module ListUtils
     (
      convertToPositionList,
      window,
-     Position(..)
+     Position(..),
+     groupBetweenBlankLines
     ) where
 
     import Data.Hashable
@@ -21,3 +22,11 @@ module ListUtils
     window n numbers | length numbers < n = [[]]
                      | length numbers == n = [numbers]
                      | otherwise = take n numbers : window n (tail numbers)
+
+    groupBetweenBlankLines :: [String] -> [[String]]
+    groupBetweenBlankLines input = groupBetweenBlankLines'' input []
+
+    groupBetweenBlankLines'' :: [String] -> [String] -> [[String]]
+    groupBetweenBlankLines'' [] n = [n]
+    groupBetweenBlankLines'' (x:xs) n | null x = n : groupBetweenBlankLines'' xs []
+                                      | otherwise = groupBetweenBlankLines'' xs (x : n)
