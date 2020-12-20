@@ -10,6 +10,7 @@ module Day19_2020
     import Data.List (find, foldl', sort, nub)
     import Data.Maybe (fromJust)
     import Data.Universe.Helpers (choices)
+    import qualified Data.HashMap.Strict as H
 
     data Rule = S [String] | R [[Int]] deriving Show
 
@@ -43,7 +44,7 @@ module Day19_2020
          r <- choice [try parseOrRule, try parseSingleRule, try parseString]
          return (read i, r)
     -------------
-    runRules :: [(Int, Rule)] -> [(Int, Rule)] -> [(Int, Rule)]
+    runRules :: H.HashMap Int Rule -> H.HashMap Int Rule -> H.HashMap Int Rule
     runRules ns [] = ns
     runRules ns ((e,S rs):xs) = runRules ((e,S rs): ns) xs
     runRules ns ((e, R rs):xs) | null [ x | x@(R _) <- map snd $ filter (\(i, r) -> i `elem` join rs ) (xs ++ ns)] = runRules (newStrings : ns) xs
@@ -51,7 +52,7 @@ module Day19_2020
         where
           newStrings = (e, expandRules rs (filter (\(i, r) -> i `elem` join rs) (xs ++ ns)))
 
-    finishedRules :: [(Int, Rule)] -> [(Int, Rule)]
+    finishedRules :: H.HashMap Int Rule -> H.HashMap Int Rule
     finishedRules xs | null [ x | x@(R _) <- map snd expanded] = expanded
                      | otherwise = finishedRules expanded
        where expanded = runRules [] xs
@@ -59,16 +60,16 @@ module Day19_2020
     --test = [(0, R [[4,1,5]]),(1, R [[2,3],[3,2]]),(2, S ["aa", "ab"]), (3, S ["ab", "ba"]),(4, S ["a"]),(5, S ["b"])]
 
 
-    expandRules :: [[Int]] -> [(Int, Rule)] -> Rule
+    expandRules :: [[Int]] -> H.HashMap Int Rule -> Rule
     expandRules rs refs = S $ sort $ nub $ join $ map (\x -> map (foldl' (++) "") $ choices $ map (\y ->  (\(S s) -> s) $ snd $ fromJust $ find (\(i,_) -> i == y) refs) x) rs
 
     
-    {--day19Pt1 = (\x -> length $ filter(\l -> l `elem` validMessages x) $ snd x) <$> readRulesAndMessages
+    day19Pt1 = (\x -> length $ filter(\l -> l `elem` validMessages x) $ snd x) <$> readRulesAndMessages
        where
-         validMessages x = ((\(S s) -> s) . snd . fromJust . find (\(i,_) -> i == 0) . finishedRules . fst) x --}
+         validMessages x = ((\(S s) -> s) . snd . fromJust . find (\(i,_) -> i == 0) . finishedRules . fst) x
 
-    day19Pt1 = (\(S s) -> s) . snd . fromJust . find (\(i,_) -> i == 0) . finishedRules . fst <$> readRulesAndMessages
+    --day19Pt1 = (\(S s) -> s) . snd . fromJust . find (\(i,_) -> i == 0) . finishedRules . fst <$> readRulesAndMessages
        
     
-    readRulesAndMessages :: IO ([(Int, Rule)], [String])
-    readRulesAndMessages = (\x -> (map (fromRight' . parse parseIndexedRule "") $ head x, x !! 1)) . groupBetweenBlankLines . lines <$> readFile "resource/2020/day19"
+    readRulesAndMessages :: IO (H.HashMap Int Rule, [String])
+    readRulesAndMessages = (\x -> (H.fromList $ map (fromRight' . parse parseIndexedRule "") $ head x, x !! 1)) . groupBetweenBlankLines . lines <$> readFile "resource/2020/day19"
