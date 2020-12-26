@@ -6,13 +6,14 @@ module Day19_2020
     import Text.ParserCombinators.Parsec
     import Data.Either.Combinators
     import ListUtils (groupBetweenBlankLines)
-    import Control.Monad (join)
+    import Control.Monad (join, foldM)
     import Data.List (find, foldl', sort, nub)
-    import Data.Maybe (fromJust, isJust)
+    import Data.Maybe (fromJust, isJust, fromMaybe)
     import Data.Universe.Helpers (choices)
     import qualified Data.HashMap.Strict as H
+    import Data.String.Utils (split, splitWs, startswith, endswith)
 
-    data Rule = S [String] | R [[Int]] deriving Show
+    data Rule = S String | R [[Int]] deriving Show
 
     parseRuleC :: Parser [Int]
     parseRuleC = do
@@ -35,7 +36,7 @@ module Day19_2020
         char '"'
         i <- many1 letter
         char '"'
-        return $ S [i]
+        return $ S i
 
     parseIndexedRule :: Parser (Int, Rule)
     parseIndexedRule = do
@@ -44,30 +45,26 @@ module Day19_2020
          r <- choice [try parseOrRule, try parseSingleRule, try parseString]
          return (read i, r)
     -------------
-    runRules :: H.HashMap Int Rule -> H.HashMap Int Rule
-    runRules rulemap = foldl' (\b (i,s) -> H.insert i s b) rulemap $ H.toList expanded
+    orElse :: Maybe a -> Maybe a -> Maybe a
+    orElse (Just x) _ = Just x
+    orElse Nothing  x = x
+    
+    matchRule :: Rule -> String -> H.HashMap Int Rule -> Maybe String
+    matchRule (R [ra,rb]) xs ruleMap = orElse (runRule ra) (runRule rb)
         where
-          expanded = H.map newStrings $ H.filter (\(R rs) -> all (\i -> isJust $ H.lookup i onlyStrings) (join rs)) onlyRules
-          onlyRules = H.filterWithKey (\k v -> case v of (R _) -> True; _ -> False ) rulemap
-          onlyStrings = H.filterWithKey (\k v -> case v of (S _) -> True; _ -> False ) rulemap
-          newStrings (R rs) = expandRules rs (H.filterWithKey (\i r -> i `elem` join rs) rulemap)
-    
+          lookUpAndMatch i xs ruleMap = matchRule (fromJust $ H.lookup i ruleMap) xs ruleMap
+          runRule x = foldM (\a b -> lookUpAndMatch b a ruleMap) xs x
+    matchRule (R [r]) xs ruleMap = foldM (\a b -> lookUpAndMatch b a ruleMap) xs r
+        where
+          lookUpAndMatch i xs ruleMap = matchRule (fromJust $ H.lookup i ruleMap) xs ruleMap
+    matchRule (S a) xs _ | a `startswith` xs = Just (drop (length a) xs)
+                         | otherwise = Nothing
 
-    finishedRules :: H.HashMap Int Rule -> H.HashMap Int Rule
-    finishedRules xs | null [ x | x@(R _) <- H.elems xs] = expanded
-                     | otherwise = finishedRules expanded
-       where expanded = runRules xs
+    matchFormatRule :: H.HashMap Int Rule -> String -> Maybe String
+    matchFormatRule ruleMap xs = matchRule (fromJust $ H.lookup 0 ruleMap) xs ruleMap
 
-    expandRules :: [[Int]] -> H.HashMap Int Rule -> Rule
-    expandRules rs refs = S $ sort $ nub $ join $ map (map (foldl' (++) "") . choices . map (\y ->  (\(S s) -> s) $ fromJust $ H.lookup y refs)) rs
-
-    
-    {--day19Pt1 = (\x -> length $ filter(\l -> l `elem` validMessages x) $ snd x) <$> readRulesAndMessages
-       where
-         validMessages x = ((\(S s) -> s) . fromJust . H.lookup 0 . finishedRules . fst) x --}
-
-    day19Pt1 = finishedRules . fst <$> readRulesAndMessages
+    day19Pt1 = length . filter (== Just "") . (\(a,b) -> map (\x -> matchFormatRule a x) b) <$> readRulesAndMessages
        
     
     readRulesAndMessages :: IO (H.HashMap Int Rule, [String])
-    readRulesAndMessages = (\x -> (H.fromList $ map (fromRight' . parse parseIndexedRule "") $ head x, x !! 1)) . groupBetweenBlankLines . lines <$> readFile "resource/2020/day19_test"
+    readRulesAndMessages = (\x -> (H.fromList $ map (fromRight' . parse parseIndexedRule "") $ head x, x !! 1)) . groupBetweenBlankLines . lines <$> readFile "resource/2020/day19"
