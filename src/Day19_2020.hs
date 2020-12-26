@@ -64,7 +64,28 @@ module Day19_2020
     matchFormatRule ruleMap xs = matchRule (fromJust $ H.lookup 0 ruleMap) xs ruleMap
 
     day19Pt1 = length . filter (== Just "") . (\(a,b) -> map (\x -> matchFormatRule a x) b) <$> readRulesAndMessages
-       
+    --------------
+    lookUpAndMatchB :: Int -> String -> H.HashMap Int Rule -> [Maybe String]
+    lookUpAndMatchB i xs ruleMap = matchRuleB (fromJust $ H.lookup i ruleMap) xs ruleMap
+
+    matchRuleB :: Rule -> String -> H.HashMap Int Rule -> [Maybe String]
+    matchRuleB (R [ra,rb]) xs ruleMap =  filter isJust . id =<< [runRule ra, runRule rb]
+            where
+          lookUpAndMatch i xs ruleMap = matchRuleB (fromJust $ H.lookup i ruleMap) xs ruleMap
+          runRule x = foldl' (\a b -> (\t -> lookUpAndMatchB b t ruleMap) =<< (map fromJust $ filter isJust a)) [Just xs] x
+    matchRuleB (R [r]) xs ruleMap =  foldl' (\a b -> (\t -> lookUpAndMatchB b t ruleMap) =<< (map fromJust $ filter isJust a)) [Just xs] r
+          
+    matchRuleB (S a) xs _ | a `startswith` xs = [Just (drop (length a) xs)]
+                          | otherwise = [Nothing]
+
+    matchFormatRuleB :: H.HashMap Int Rule -> String -> [Maybe String]
+    matchFormatRuleB ruleMap xs = matchRuleB (fromJust $ H.lookup 0 ruleMap) xs ruleMap
+
+    day19Pt2 = length . filter (\(a,b) -> length b /= 0 && elem (Just "") b) . (\(a,b) -> map (\x -> (x, matchFormatRuleB a x)) b) <$> readRulesAndMessagesB
     
     readRulesAndMessages :: IO (H.HashMap Int Rule, [String])
     readRulesAndMessages = (\x -> (H.fromList $ map (fromRight' . parse parseIndexedRule "") $ head x, x !! 1)) . groupBetweenBlankLines . lines <$> readFile "resource/2020/day19"
+
+
+    readRulesAndMessagesB :: IO (H.HashMap Int Rule, [String])
+    readRulesAndMessagesB = (\x -> (H.fromList $ map (fromRight' . parse parseIndexedRule "") $ head x, x !! 1)) . groupBetweenBlankLines . lines <$> readFile "resource/2020/day19_pt2"
