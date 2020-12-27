@@ -35,7 +35,7 @@ module Day21_2020
 
     reduceList :: [([String], String)] -> [(String, String)]
     reduceList [] = []
-    reduceList ((x, a):xs) = (head x,a): (reduceList $ sortCandidateList $ map (\(l,a) -> ( l \\ x, a)) xs)
+    reduceList ((x, a):xs) = (head x,a): reduceList (sortCandidateList $ map (\(l,a) -> ( l \\ x, a)) xs)
 
     findAllergyIngredients :: [Food] -> [(String, String)]
     findAllergyIngredients = reduceList . sortCandidateList . (\l -> map (\a -> (findPotentialAllergyIngredients l a, a)) $ allAllergies l)
@@ -45,7 +45,7 @@ module Day21_2020
 
     allIngredientLists = map (\(Food xs _) -> xs)
 
-    day21Pt1 = (\fs -> length $ (\l -> l \\ (map fst $ findAllergyIngredients fs)) =<< (allIngredientLists fs)) <$> findFoodLists
+    day21Pt1 = (\fs -> length $ (\l -> l \\ map fst (findAllergyIngredients fs)) =<< allIngredientLists fs) <$> findFoodLists
 
     day21Pt2 = foldl1' (\a b -> a ++ "," ++ b) . map fst . sortBy (\(iA,aA) (iB, aB) -> compare aA aB) . findAllergyIngredients <$> findFoodLists
     
