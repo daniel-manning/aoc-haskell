@@ -34,8 +34,10 @@ dependencies:
 - unordered-containers
 - hashable
 - aeson
+- aeson-pretty
 - universe-base
 - json-stream
+- raw-strings-qq
 
 library:
   source-dirs: src
