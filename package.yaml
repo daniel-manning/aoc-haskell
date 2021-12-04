@@ -38,6 +38,7 @@ dependencies:
 - universe-base
 - json-stream
 - raw-strings-qq
+- extra
 
 library:
   source-dirs: src
