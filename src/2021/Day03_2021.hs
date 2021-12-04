@@ -23,6 +23,8 @@ parseDigit = parseZero <|> parseOne
 
 parseBinary = many1 parseDigit
 -----------
+readData :: IO [String]
+readData = lines <$> readFile "resource/2021/day03"
 
 flipBinary :: Binary -> Binary
 flipBinary Zero = One
@@ -68,8 +70,10 @@ lifeSupportRating xs = toDecimal or * toDecimal cor
         or = oxygenGeneratorRating xs
         cor = co2ScrubberRating xs
 
-main :: IO Int
---main = powerConsumption . map (fromRight' . parse parseBinary "") .lines <$> readFile "resource/2021/day03_test"
-main = lifeSupportRating . map (fromRight' . parse parseBinary "") .lines <$> readFile "resource/2021/day03"
+runPt1 = powerConsumption
+runPt2 = lifeSupportRating
 
---NB : This odoesnt work in general as I havent told it what to do in tie-breaks
+main :: IO Int
+main = runPt2 . map (fromRight' . parse parseBinary "") <$> readData
+
+--NB : This doesnt work in general as I havent told it what to do in tie-breaks
