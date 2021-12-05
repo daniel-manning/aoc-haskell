@@ -78,17 +78,17 @@ module Day04_2021
     findWinner n xs= find (\x -> checkForWin x == Finished) $ reducedCard n xs
 
     runPt1 :: (Numbers, [Card]) -> Int
-    runPt1 = (\(x, n) -> n * (sum $ takeRemaining x)) . drawBallsUntilFinished
+    runPt1 = (\(x, n) -> n * sum (takeRemaining x)) . drawBallsUntilFinished
     ----------------------
     drawBallsUntilLastCard :: (Numbers, [Card]) -> (C, Int)
     drawBallsUntilLastCard (Numbers ns, cards) = drawBalls'' ns (map (createFullLines . (\(Card c) -> c)) cards)
   
-    drawBalls'' (ball : balls) cs = if (null remaining) then (head (reducedCard ball cs), ball)
+    drawBalls'' (ball : balls) cs = if null remaining then (head (reducedCard ball cs), ball)
                                     else drawBalls'' balls remaining
         where
             remaining = filter (\x -> checkForWin x == Ongoing) (reducedCard ball cs)
 
     runPt2 :: (Numbers, [Card]) -> Int
-    runPt2 = (\(x, n) -> n * (sum $ takeRemaining x)) . drawBallsUntilLastCard
+    runPt2 = (\(x, n) -> n * sum (takeRemaining x)) . drawBallsUntilLastCard
 
     main = runPt2 . parseBingo . splitOutNumbersCards <$> readData
