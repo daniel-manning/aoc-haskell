@@ -6,7 +6,6 @@ module Day07_2021
     import Text.ParserCombinators.Parsec (many1, digit, Parser, parse, char, sepBy1)
     import Data.Either.Combinators ( fromRight' )
     import Data.List(genericLength)
-    import System.Posix.Internals (c_dup2)
     
     parseCrabs :: Parser [Int]
     parseCrabs = do
