@@ -3,7 +3,7 @@ module Day06_2021
     ) where
 
     import Text.ParserCombinators.Parsec (many1, digit, Parser, parse, char, sepBy1)
-    import Data.Either.Combinators
+    import Data.Either.Combinators ( fromRight' )
     import Data.List(sort, find, delete, group)
     import Data.Maybe(maybe)
 
