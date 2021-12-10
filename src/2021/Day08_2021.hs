@@ -104,11 +104,3 @@ runPt2 = sum . map puzzleSolved
 
 solution :: IO Int
 solution = runPt2 <$> readAndParse
-
-{-
-
-problem with line
-efabcd cedba gadfec cb: 9361
-reading as a zero instead of a 6
-
--}
