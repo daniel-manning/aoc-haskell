@@ -74,7 +74,17 @@ nTimes 1 f = f
 nTimes n f = f . nTimes (n-1) f
 
 runPt1 :: [[Int]] -> Int
-runPt1 = flashes . nTimes 100 (runRound (Dimensions 10 10)) . (FlasherState 0 . turnIntoSet) 
+runPt1 = flashes . nTimes 100 (runRound (Dimensions 10 10)) . (FlasherState 0 . turnIntoSet)
+-------------------------------------------
+haveAllFlashedAtOnce :: FlasherState -> Bool
+haveAllFlashedAtOnce (FlasherState n s) = all (\l -> snd l == 0) s
+
+runWhileUnfinished :: Int -> (a -> Bool) -> (a -> a) -> a -> Int
+runWhileUnfinished n p f a | p a = n
+                           | otherwise = runWhileUnfinished (n+1) p f (f a)
+
+runPt2 :: [[Int]] -> Int
+runPt2 =  runWhileUnfinished 0 haveAllFlashedAtOnce (runRound (Dimensions 10 10)) . (FlasherState 0 . turnIntoSet)
 
 solution :: IO Int
-solution = runPt1 <$> readAndParse
+solution = runPt2 <$> readAndParse
