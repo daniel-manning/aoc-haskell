@@ -1,9 +1,7 @@
 module Day09_2021 where
 
 import Data.List (all, (\\), nub, sort)
-
-data Position = Position Int Int deriving (Eq, Show)
-data Dimensions = Dimensions Int Int
+import Grid
 
 split :: String -> [Int]
 split = map (read . (:[]))
@@ -14,12 +12,6 @@ readData = lines <$> readFile "resource/2021/day09"
 readAndParse :: IO [[Int]]
 readAndParse = map split <$> readData
 -----------------
-
-get :: Position -> [[a]] -> a
-get (Position x y) as = (as !! y) !! x
-
-neighbourhood :: Dimensions -> Position -> [Position]
-neighbourhood (Dimensions mx my) (Position x y) = filter (\(Position a b) -> (a>= 0) && (b >= 0) && (a < mx) && (b < my)) [Position x (y - 1), Position x (y + 1), Position (x - 1) y, Position  (x + 1) y]
 
 getNeighbourhoodData :: Dimensions -> Position -> [[a]] -> [a]
 getNeighbourhoodData d p as = map (`get` as) (neighbourhood d p)
@@ -67,9 +59,6 @@ visited d vs (l:left) as = visited d (c:vs) (left \\ c) as
     where
         c = gather d [] [l] as
 
-dimensions :: [[a]] -> Dimensions
-dimensions as = Dimensions (length (head as)) (length as)
-
 spacesWithoutWalls :: (Eq a, Num a) => Dimensions -> [[a]] -> [Position]
 spacesWithoutWalls (Dimensions mx my) as = filter (\p -> get p as /= 9) [Position x y | x <- [0.. (mx - 1)], y <- [0.. (my - 1)]]
 
@@ -77,6 +66,7 @@ runPt2 :: [[Int]] -> Int
 runPt2 as = product $ take 3 $ reverse $ sort $ map length $ visited d [] (spacesWithoutWalls d as) as
     where
         d = dimensions as
+--------------------------
 
 solution :: IO Int
 solution =  runPt2 <$> readAndParse
