@@ -1,4 +1,4 @@
-module Day12_2021 where
+module Day12_2021( solution ) where
 
 import qualified Data.Map.Strict as Map
 import Data.List (sortBy, groupBy, sort, group)
@@ -76,3 +76,9 @@ runPt2 = length . runWalk removeManyVisitsToCaves (Name "end")
 
 solution :: IO Int
 solution = runPt2 . constructMap <$> readAndParse
+
+{-
+real	0m15.098s
+user	0m22.333s
+sys	0m7.523s
+-}
