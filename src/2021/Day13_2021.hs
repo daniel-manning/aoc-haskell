@@ -26,7 +26,7 @@ parseFold = do
     return $ if xOry == 'x' then XFold (read n) else YFold (read n)
 
 parseData :: [String] -> ([Point], [Fold])
-parseData = (\x -> (map (fromRight' . parse parsePoints "") (head x), map (fromRight' . parse parseFold "") (head $ tail x))) . groupBetweenBlankLines
+parseData = (\x -> (map (fromRight' . parse parsePoints "") (head x), map (fromRight' . parse parseFold "") (reverse $ head $ tail x))) . groupBetweenBlankLines
 
 readData :: IO [String]
 readData = lines <$> readFile "resource/2021/day13"
@@ -48,8 +48,8 @@ foldDimensions (Dimensions x y) (YFold n) = Dimensions x ((y-1) `div` 2)
 foldUp :: Dimensions -> [Fold] -> [Point] -> Paper
 foldUp d folds points = Paper (foldl foldDimensions d folds) (foldl (flip runFold) points folds)
 
-showPoints :: Paper -> String
-showPoints (Paper (Dimensions xMax yMax) ps) = unlines [ [if Point x y `elem` ps then '#' else '.' | x <- [0..xMax] ] | y <- [0..yMax] ]
+--showPoints :: Paper -> String
+--showPoints (Paper (Dimensions xMax yMax) ps) = unlines [ [if Point x y `elem` ps then '#' else '.' | x <- [0..xMax] ] | y <- [0..yMax] ]
 
 dimensions :: [Point] -> Dimensions
 dimensions ps = Dimensions  xMax yMax
@@ -57,6 +57,7 @@ dimensions ps = Dimensions  xMax yMax
         xMax = maximum (map (\(Point x y) -> x) ps)
         yMax = maximum (map (\(Point x y) -> y) ps)
 
-countDots = length . filter (== '#')
+--countDots = length . filter (== '#')
+runPt1 = (\(Paper _ ps) -> length ps) . (\l -> foldUp (dimensions (fst l)) (take 1 $ snd l) (fst l))
 
-solution = {- countDots .  showPoints . -} (\l -> foldUp (dimensions (fst l)) (take 1 $ snd l) (fst l)) <$> readAndParse
+solution =  runPt1 <$> readAndParse
