@@ -57,10 +57,11 @@ dimensions ps = Dimensions  xMax yMax
         xMax = maximum (map (\(Point x y) -> x) ps)
         yMax = maximum (map (\(Point x y) -> y) ps)
 
+runPt1 :: ([Point], [Fold]) -> Int
 runPt1 = (\(Paper _ ps) -> length ps) . (\l -> foldUp (dimensions (fst l)) (take 1 $ snd l) (fst l))
 
+runPt2 :: ([Point], [Fold]) -> String
 runPt2 = showPoints . (\l -> foldUp (dimensions (fst l)) (snd l) (fst l))
 
-
-
+solution :: IO ()
 solution =   putStr . runPt2 =<< readAndParse
