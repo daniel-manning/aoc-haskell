@@ -6,7 +6,7 @@ import Data.Maybe ( fromJust )
 import Data.String.Utils (rstrip)
 import Data.List.Extra (chunksOf)
 import Data.Foldable (concatMap)
-import System.IO.HVFS (HVFSStat(vAccessTime))
+import Data.Bifunctor (first)
 
 data Bit = One | Zero deriving (Eq, Show)
 data Packet = Packet Int Int [Packet] | Literal Int Int Int deriving Show
@@ -55,7 +55,7 @@ parsePacket v 4 r = (Literal v 4 csReal,  rest)
         cs = takeWithFirstFailure (\xs -> head xs == One) $ chunksOf 5 r
         csReal = bitsToInt $ concatMap tail cs
         rest = drop (sum $ map length cs) r
-parsePacket v t r = (Packet v t (fst ps), (snd ps))
+parsePacket v t r = first (Packet v t) ps
     where
         lenType = head r
         len = if lenType == Zero then Length (bitsToInt $take 15 $ drop 1 r) else NoOfPacket (bitsToInt $ take 11 $ drop 1 r)
