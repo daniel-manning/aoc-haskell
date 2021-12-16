@@ -87,5 +87,34 @@ countUpVersionNumbers (Packet v _ ps) = v + sum (map countUpVersionNumbers ps)
 bitsToInt :: [Bit] -> Int
 bitsToInt xs =  sum $ zipWith (\k n -> if k == One then 2 ^ n else 0) (reverse xs) [0..] 
 
+runPt1 :: [Bit] -> Int
+runPt1 = countUpVersionNumbers . fst . parseBits 
+---------------------------
+data Operation = Sum [Operation] | Product [Operation] | Minimum [Operation] | Maximum [Operation] | GreaterThan [Operation] | LessThan [Operation] | EqualTo [Operation] | Value Int deriving Show
+
+convertToOperation :: Packet -> Operation
+convertToOperation (Literal _ _ value) = Value value
+convertToOperation (Packet _ 0 ps) = Sum (map convertToOperation ps)
+convertToOperation (Packet _ 1 ps) = Product (map convertToOperation ps)
+convertToOperation (Packet _ 2 ps) = Minimum (map convertToOperation ps)
+convertToOperation (Packet _ 3 ps) = Maximum (map convertToOperation ps)
+convertToOperation (Packet _ 5 ps) = GreaterThan (map convertToOperation ps)
+convertToOperation (Packet _ 6 ps) = LessThan (map convertToOperation ps)
+convertToOperation (Packet _ 7 ps) = EqualTo (map convertToOperation ps)
+convertToOperation (Packet _ _ ps) = EqualTo (map convertToOperation ps) {- I know -}
+
+runOperation :: Operation -> Int
+runOperation (Value n) = n
+runOperation (Sum ps) = sum $ map runOperation ps
+runOperation (Product ps) = product $ map runOperation ps
+runOperation (Minimum ps) = minimum $ map runOperation ps
+runOperation (Maximum ps) = maximum $ map runOperation ps
+runOperation (GreaterThan ps) = (\xs -> if head xs > head (tail xs) then 1 else 0) $ map runOperation ps
+runOperation (LessThan ps) = (\xs -> if head xs < head (tail xs) then 1 else 0) $ map runOperation ps
+runOperation (EqualTo ps) = (\xs -> if head xs == head (tail xs) then 1 else 0) $ map runOperation ps
+
+runPt2 :: [Bit] -> Int
+runPt2 = runOperation . convertToOperation . fst . parseBits
+
 solution :: IO Int
-solution = countUpVersionNumbers . fst . parseBits <$> readAndParse
+solution = runPt2 <$> readAndParse
