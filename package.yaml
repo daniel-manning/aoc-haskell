@@ -39,6 +39,7 @@ dependencies:
 - json-stream
 - raw-strings-qq
 - extra
+- psqueues
 
 library:
   source-dirs: src
