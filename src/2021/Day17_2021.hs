@@ -52,7 +52,7 @@ reachedFullRange t (xMin, xMax) = map floor $ filter (\v -> xMin' <= (0.5*v*(v+1
         t' = fromIntegral t
 
 stillDecelerating :: Int -> (Int, Int) -> [Int]
-stillDecelerating t (xMin, xMax) = integersInRange [(2*xMin' + t'*(t'-1))/(2*t'), (2*xMax' + t'*(t'-1))/(2*t')]
+stillDecelerating t (xMin, xMax) = filter (>=t) $ integersInRange [(2*xMin' + t'*(t'-1))/(2*t'), (2*xMax' + t'*(t'-1))/(2*t')]
     where
         xMin' = fromIntegral xMin
         xMax' = fromIntegral xMax
@@ -72,5 +72,16 @@ constructVelocity (Target xRange yRange) vY = map (, vY) $ nub $ sort $ (`extrap
 maximumHeight :: Target -> Int
 maximumHeight t@(Target xRange (yMin, yMax))= (\v -> v*(v+1) `div` 2) . snd . head $ constructVelocity t (abs yMin - 1)
 
+runPt1 :: Target -> Int
+runPt1 = maximumHeight
+----------------
 
-run = maximumHeight <$> readAndParse
+{- assuming a negative yMin -}
+allVelocities :: Target -> [(Int, Int)]
+allVelocities t@(Target xRange (yMin, yMax)) = nub $ concatMap (constructVelocity t) [(yMin -1) .. (abs yMin)]
+
+runPt2 :: Target -> Int 
+runPt2 = length . allVelocities
+
+run :: IO Int
+run = runPt2 <$> readAndParse
