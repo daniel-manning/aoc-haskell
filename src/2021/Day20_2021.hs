@@ -102,5 +102,18 @@ user	0m6.934s
 sys	    0m0.060s
 -}
 
+
+
+--This will not work in reasonable time on the input
+--need to look at another data structure like zippers?
+enhanceTimes :: IEA -> Int -> Floor -> Floor
+enhanceTimes iea n = enhanceTimes' iea 1 (n+1)
+    where
+        enhanceTimes' iea m n f | m == n = f
+                                | otherwise = enhanceTimes' iea (m+1) n (enhance iea m f)
+
+runPt2 :: (IEA, Floor) -> Int
+runPt2 (iea, floor) = howManyLit $ enhanceTimes iea 50 floor
+
 solution :: IO Int
-solution = runPt1 <$> readAndParse
+solution = runPt2 <$> readAndParse
