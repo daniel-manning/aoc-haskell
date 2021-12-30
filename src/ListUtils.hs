@@ -8,7 +8,7 @@ module ListUtils
 
     import Data.Hashable
 
-    data Position = Position Int Int deriving (Eq, Show)
+    data Position = Position Int Int deriving (Ord, Eq, Show)
 
     instance Hashable Position where
         hashWithSalt s (Position x y) =
