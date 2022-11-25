@@ -4,4 +4,6 @@ stack.yaml.lock
 aoc-haskell.iml
 .idea/*
 dist-newstyle/*
+.metals/
+.vscode/
 *~
