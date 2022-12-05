@@ -8,7 +8,7 @@ import Data.Either.Combinators (fromRight')
 readData = lines <$> readFile "resource/2017/day02"
 
 parseItems :: Parser [Int]
-parseItems = map read <$> sepBy1 (many1 digit) (char ' ' <|> char '\t') --TODO: tab character literal
+parseItems = map read <$> sepBy1 (many1 digit) (char ' ' <|> char '\t')
 
 readAndParse :: IO [[Int]]
 readAndParse = map (fromRight' . parse parseItems "") <$> readData
