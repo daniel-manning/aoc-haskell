@@ -51,13 +51,6 @@ directoryHasLabel _ _ = False
 replaceDirectory :: [Tree] -> Tree -> [Tree]
 replaceDirectory ts (Directory rn rts) = filter (not . directoryHasLabel rn) ts ++ [Directory rn rts]
 
-
-{-updateDirectoryInTree :: Tree -> (Pwd, Tree) -> Tree
-updateDirectoryInTree r (Pwd ps, Empty) = r 
-updateDirectoryInTree (Directory rn rts) (Pwd ps, File s n) = File s n
-updateDirectoryInTree (Directory rn rts) (Pwd ps, Directory n ts) | any (directoryHasLabel rn) ts = Directory n (replaceDirectory ts (Directory rn rts))
-                                                                  | otherwise = Directory n (map (\t -> updateDirectoryInTree (Directory rn rts) (Pwd ps, t)) ts)-}
-
 updateDirectoryInTree :: Tree -> (Pwd, Tree) -> Tree
 updateDirectoryInTree r (Pwd ps, Empty) = r
 updateDirectoryInTree (Directory rn rts) (Pwd ps, Directory n ts) | length ps == 1 = Directory n (replaceDirectory ts (Directory rn rts))
@@ -74,14 +67,13 @@ reversePwd (Pwd ps) = Pwd (reverse ps)
 tailPwd :: Pwd -> Pwd
 tailPwd (Pwd ps) = Pwd (tail ps)
 
-ropeEm :: (Pwd, Tree) -> TerminalLine -> (Pwd, Tree)
-ropeEm (pwd, t) (C MoveUp) = ((\(Pwd ts) -> Pwd (tail ts)) pwd, t)
-ropeEm (pwd, t) (C (Cd n)) = ((\(Pwd ts) -> Pwd (n : ts)) pwd, t)
---ropeEm (pwd, t) (T Empty) = (tail pwd, t)
-ropeEm (pwd, t) (T (Directory n fs)) = (pwd, updateDirectoryInTree (Directory n fs) (tailPwd $ reversePwd pwd, t)) --Fix
+runCommand :: (Pwd, Tree) -> TerminalLine -> (Pwd, Tree)
+runCommand (pwd, t) (C MoveUp) = ((\(Pwd ts) -> Pwd (tail ts)) pwd, t)
+runCommand (pwd, t) (C (Cd n)) = ((\(Pwd ts) -> Pwd (n : ts)) pwd, t)
+runCommand (pwd, t) (T (Directory n fs)) = (pwd, updateDirectoryInTree (Directory n fs) (tailPwd $ reversePwd pwd, t))
 
 foldUp :: [TerminalLine] -> (Pwd, Tree)
-foldUp = foldl' ropeEm (Pwd [], Empty)
+foldUp = foldl' runCommand (Pwd [], Empty)
 
 constructTree :: [TerminalLine] -> Tree
 constructTree = snd . foldUp . foldUpLs
@@ -96,5 +88,18 @@ listOutDirectorySize Empty = []
 listOutDirectorySize  (File _ _) = []
 listOutDirectorySize (Directory l rts) = (l, totalSize (Directory l rts)) : (listOutDirectorySize =<< rts)
 
-
 runPt1 = sum . map snd . filter ((<=100000) . snd) . listOutDirectorySize . constructTree <$> readAndParse
+-----------------------------
+spaceLeftOnDisk :: [(String, Int)] -> Int
+spaceLeftOnDisk xs =  70000000 - snd (head (filter ((== "/").fst) xs))
+
+spaceNeeded :: [(String, Int)] -> Int
+spaceNeeded xs = 30000000 - spaceLeftOnDisk xs
+
+directoryCandidates :: [(String, Int)] -> [Int]
+directoryCandidates xs = map snd $ filter ((>= k).snd) xs
+    where
+        k = spaceNeeded xs
+
+
+runPt2 = minimum . directoryCandidates . listOutDirectorySize . constructTree <$> readAndParse
