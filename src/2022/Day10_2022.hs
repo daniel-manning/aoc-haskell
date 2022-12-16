@@ -55,14 +55,6 @@ signalStrength ss = map (\n -> n * signalStrengthAt ss n) $ takeWhile (<= cycleE
 runPt1 = sum . signalStrength . runSystem (System 0 1) <$> readAndParse
 --------------
 
-out = [
-    "##..##..##..##..##..##..##..##..##..##..",
-    "###...###...###...###...###...###...###.",
-    "####....####....####....####....####....",
-    "#####.....#####.....#####.....#####.....",
-    "######......######......######......####",
-    "#######.......#######.......#######....."]
-
 printDisplay :: [String] -> IO ()
 printDisplay = mapM_ putStrLn
 
