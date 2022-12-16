@@ -22,7 +22,7 @@ parseNOOP = do
     return NOOP
 
 readData :: IO [String]
-readData = lines <$> readFile "resource/2022/day10_test_2"
+readData = lines <$> readFile "resource/2022/day10"
 
 parseInstruction = parseAddX <|> parseNOOP
 
@@ -77,7 +77,7 @@ modLines n | n `mod` 40 == 0  = 40
            | otherwise    = n `mod` 40 
 
 cycleOutput :: [System] -> Int -> Char
-cycleOutput ss c | printPixel (modLines c)  v = '#'
+cycleOutput ss c | printPixel (modLines c - 1)  v = '#'
                  | otherwise                  = '.'
     where
         v = signalStrengthAt ss c
@@ -86,4 +86,4 @@ pixels :: [System] -> [String]
 pixels ss = map (map (cycleOutput ss)) cycleLines
 
 
-runPt2 = printDisplay =<< (pixels . runSystem (System 0 1) <$> readAndParse)
+runPt2 = printDisplay . pixels . runSystem (System 0 1) =<< readAndParse
