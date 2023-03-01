@@ -26,3 +26,29 @@ findPosition 1 = (0,0)
 findPosition n = walkExtraDistance n $ closestDiagonal n
 
 findDistance = distance . findPosition
+----------------------------
+directions :: [Direction]
+directions = R : U : L : D : directions
+
+steps = (\n -> [n, n]) =<< [1..]
+
+spiralDirections = concat $ zipWith replicate steps directions
+
+fillUp n= foldl checkNeihbourhoodValues ((0,0), [((0,0), 1)]) (take n spiralDirections)
+
+checkNeihbourhoodValues :: ((Int, Int), [((Int, Int), Int)]) -> Direction -> ((Int, Int), [((Int, Int), Int)])
+checkNeihbourhoodValues (pos, neighbourValues) dir = (pos', (pos', v) : neighbourValues)
+    where
+        pos' = walk 1 pos dir
+        v = sum $ findNValues pos' neighbourValues
+
+findNValues :: (Int, Int) -> [((Int, Int), Int)] -> [Int]
+findNValues (x, y) vs = map snd $ filter (\v -> fst v  `elem` ns) vs
+    where
+        ns = [(x-1, y+1), (x, y + 1), (x + 1, y + 1), 
+              (x - 1, y),      (x + 1, y),
+              (x - 1, y - 1), (x, y - 1), (x + 1, y - 1)]
+
+reverseAndDrain = map snd . reverse . snd . fillUp
+
+findFirstLargest = head . dropWhile (<361527) . reverseAndDrain
