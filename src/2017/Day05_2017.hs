@@ -1,4 +1,5 @@
 module Day05_2017 (
+    runPt2
 ) where
 
 import Data.IntMap.Strict (IntMap)
@@ -20,7 +21,7 @@ makeIndex refs = (0,  0, IntMap.fromList (zip [0..] refs))
 runPt1 =  snd . runIndex . makeIndex <$> readData
 ---------------------
 
-runIndex' :: (Int, Int, IntMap.IntMap Int) -> (Int, Int)
+runIndex' :: (Int, Integer, IntMap.IntMap Int) -> (Int, Integer)
 runIndex' (idx, n, refs) | idx < 0 || idx >= length refs = (idx, n)
                         | otherwise = runIndex' (idx + refs IntMap.! idx, n + 1, updateRefs)
     where
