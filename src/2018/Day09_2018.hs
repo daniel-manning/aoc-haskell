@@ -1,35 +1,25 @@
 module Day09_2018 (
-    day09Pt1
+    day09Pt1,
+    day09Pt2
 ) where
 
 import Control.Monad (join)
 import Data.List (foldl')
+import qualified Data.List.PointedList.Circular as PL
+import Data.Maybe (fromJust)
 import qualified Data.HashMap.Strict as HashMap
 
-insertAtPos :: Int -> a -> [a] -> [a]
-insertAtPos n v vs = as ++ [v] ++ bs
-    where
-        (as, bs) = splitAt n vs
 
-removeAtPos ::Int -> [a] -> (a, [a])
-removeAtPos n as = (as !! n, take n as ++ drop (n+1) as)
-
-advance :: Int -> Int -> [Int] -> Int
-advance n p ms = (p + n) `mod` (length ms)
+type Marbles = PL.PointedList Int
 
 data GameStep = GameStep {
     score :: Int,
-    currentPos :: Int,
-    marbles :: [Int]
+    marbles :: Marbles
 } deriving Show
 
-nextMarble :: Int -> Int -> [Int] -> GameStep
-nextMarble currentPos marble ms | marble `mod` 23 == 0 = GameStep (marble + r) b ms'
-                                | otherwise = GameStep 0 k (insertAtPos k marble ms)
-    where
-        k = advance 2 currentPos ms
-        b = advance (-7) currentPos ms
-        (r, ms') = removeAtPos b ms
+nextMarble :: Int -> Marbles -> GameStep
+nextMarble marble ms | marble `mod` 23 == 0 = (\m -> GameStep (PL._focus m + marble) (fromJust $ PL.deleteRight m)) $ PL.moveN (-7) ms
+                     | otherwise = GameStep 0 (PL.insertLeft marble $ PL.moveN 2 ms)
 
 turns :: Int -> [Int]
 turns n = join $ repeat (take n [1..])
@@ -40,18 +30,19 @@ alterOrUpdate n Nothing = Just n
 
 type Scores = HashMap.HashMap Int Int
 
-foldUp :: (Scores, [Int], Int) -> (Int, Int) -> (Scores, [Int], Int)
-foldUp (scores, marbles, currentPos) (marble, player) = (scores', ms', pos')
+foldUp :: (Scores, Marbles) -> (Int, Int) -> (Scores, Marbles)
+foldUp (scores, marbles) (marble, player) = (scores', ms')
     where
-        GameStep score pos' ms' = nextMarble currentPos marble marbles
+        GameStep score ms' = nextMarble marble marbles
         scores' = HashMap.alter (alterOrUpdate score) player scores
 
-gameResult :: Int -> Int -> (Scores, [Int], Int)
-gameResult noOfPlayers noOfMarbles = foldl' foldUp (HashMap.empty, [0], 0) $ zip [1..noOfMarbles] (turns noOfPlayers)
+gameResult :: Int -> Int -> (Scores, Marbles)
+gameResult noOfPlayers noOfMarbles = foldl' foldUp (HashMap.empty, fromJust $ PL.fromList [0]) $ zip [1..noOfMarbles] (turns noOfPlayers)
 
 maxScore :: Int -> Int -> Int
 maxScore noOfPlayers noOfMarbles = maximum $ HashMap.elems s
     where
-        (s, _, _) = gameResult noOfPlayers noOfMarbles
+        s = fst $ gameResult noOfPlayers noOfMarbles
 
 day09Pt1 = maxScore 411 71058
+day09Pt2 = maxScore 411 7105800

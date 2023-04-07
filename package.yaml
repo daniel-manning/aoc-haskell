@@ -40,6 +40,8 @@ dependencies:
 - raw-strings-qq
 - extra
 - psqueues
+- split
+- pointedlist
 
 library:
   source-dirs: src
