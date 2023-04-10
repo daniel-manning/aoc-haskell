@@ -75,27 +75,28 @@ updateTail rs = head rs : updateTail' rs
             where
                 h = (\(Rope a b) -> a) r
                 t' = (\(Rope a b) -> b) r'
-                t = moveTail h t'
+                t = fromJust $ moveTail h t'
         updateTail' (r': r : rs) = Rope h t : updateTail' ((Rope h t) : rs)
             where
                 h = (\(Rope a b) -> a) r
                 t' = (\(Rope a b) -> b) r'
-                t = moveTail h t'
+                t = fromJust $ moveTail h t'
 
-moveTail ::Position -> Position -> Position
-moveTail (Position hx hy) (Position tx ty) | hx == tx && hy - ty  >= 2 = Position tx (ty + 1)
-                                                   | hx == tx && ty - hy  >= 2 = Position tx (ty - 1)
-                                                   | hy == ty && hx - tx  >= 2 = Position (tx+1) ty
-                                                   | hy == ty && tx - hx  >= 2 = Position (tx-1) ty
-                                                   | hy - 1 == ty && tx - hx  >= 2 = Position (tx-1) (ty+1)
-                                                   | hy - 1 == ty && hx - tx  >= 2 = Position (tx+1) (ty+1)
-                                                   | ty - 1 == hy && hx - tx  >= 2 = Position (tx+1) (ty-1)
-                                                   | ty - 1 == hy && tx - hx  >= 2 = Position (tx-1) (ty-1)
-                                                   | hx - 1 == tx && ty - hy  >= 2 = Position (tx+1) (ty-1)
-                                                   | hx - 1 == tx && hy - ty  >= 2 = Position (tx+1) (ty+1)
-                                                   | tx - 1 == hx && hy - ty  >= 2 = Position (tx-1) (ty+1)
-                                                   | tx - 1 == hx && ty - hy  >= 2 = Position (tx-1) (ty-1)
-                                                   | otherwise = Position tx ty 
+moveTail ::Position -> Position -> Maybe Position
+moveTail (Position hx hy) (Position tx ty) | hx == tx && hy - ty  >= 2 = Just $ Position tx (ty + 1)
+                                                   | hx == tx && ty - hy  >= 2 = Just $ Position tx (ty - 1)
+                                                   | hy == ty && hx - tx  >= 2 = Just $ Position (tx+1) ty
+                                                   | hy == ty && tx - hx  >= 2 = Just $ Position (tx-1) ty
+                                                   | hy - ty >= 1 && tx - hx  >= 2 = Just $ Position (tx-1) (ty+1)
+                                                   | hy - ty >= 1 && hx - tx  >= 2 = Just $ Position (tx+1) (ty+1)
+                                                   | ty - hy >= 1 && hx - tx  >= 2 = Just $ Position (tx+1) (ty-1)
+                                                   | ty - hy >= 1 && tx - hx  >= 2 = Just $ Position (tx-1) (ty-1)
+                                                   | hx - tx >= 1 && ty - hy  >= 2 = Just $ Position (tx+1) (ty-1)
+                                                   | hx - tx >= 1 && hy - ty  >= 2 = Just $ Position (tx+1) (ty+1)
+                                                   | tx - hx >= 1 && hy - ty  >= 2 = Just $ Position (tx-1) (ty+1)
+                                                   | tx - hx >= 1 && ty - hy  >= 2 = Just $ Position (tx-1) (ty-1)
+                                                   | abs (hx - tx) <= 1 &&  abs (hy - ty) <= 1= Just $ Position tx ty 
+                                                   | otherwise = Nothing --Position tx ty 
 startingRope :: Rope
 startingRope = Rope (Position 0 0) (Position 0 0)
 
@@ -104,19 +105,13 @@ countTailPositions = Set.size . Set.fromList . map (\(Rope h t) -> t)
 
 runPt1 = countTailPositions . updateTail . ropeMoves startingRope <$> readAndParse
 ------------------
-createNewRow :: [Rope] -> [Rope]
-createNewRow = map (\(Rope p1 p2) -> Rope p2 (Position 0 0))
 
-makeRopeSection = updateTail . createNewRow 
+replicateRopeLayer :: [Rope] -> [Rope]
+replicateRopeLayer = map (\(Rope _ b) -> Rope b (Position 0 0))
 
-nineRopeSections :: [Rope] -> [Rope]
-nineRopeSections = last . take 9 . iterate makeRopeSection
+nextLayer = updateTail . replicateRopeLayer
 
-countMovesInCommand  (R n) = n
-countMovesInCommand  (L n) = n
-countMovesInCommand  (D n) = n
-countMovesInCommand  (U n) = n
+endOfFullRope :: [Rope] -> [Rope]
+endOfFullRope rs = iterate nextLayer rs !! 8
 
-countMoves = sum . map countMovesInCommand
-
-runPt2 = countTailPositions . nineRopeSections . updateTail . ropeMoves startingRope <$> readAndParse
+runPt2 = countTailPositions . endOfFullRope . updateTail . ropeMoves startingRope <$> readAndParse
