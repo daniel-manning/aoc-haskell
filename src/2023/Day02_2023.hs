@@ -67,3 +67,9 @@ isGamePossible (id, game) | isPossibleBag $ maximumBag game = Just id
                           | otherwise = Nothing
 
 runPt1 = sum . map (\(ID n) -> n) . mapMaybe isGamePossible <$> readData
+----------------
+
+powerOfBag :: Bag -> Int
+powerOfBag bag = red bag * blue bag * green bag
+
+runPt2 = sum . map (powerOfBag . maximumBag . snd) <$> readData
