@@ -47,7 +47,7 @@ parseFullGame = do
     game <- parseGame
     return (id, game)
 ------------------
-readData = map (fromRight' . parse parseFullGame "") . lines <$> readFile "resource/2023/day02_test"
+readData = map (fromRight' . parse parseFullGame "") . lines <$> readFile "resource/2023/day02"
 
 maximumBag :: [Round] -> Bag
 maximumBag rs = Bag {red = r, blue = b, green = g}
@@ -59,8 +59,11 @@ maximumBag rs = Bag {red = r, blue = b, green = g}
 
 largestBag = Bag {red = 12, green = 13, blue = 14}
 
+isPossibleBag :: Bag -> Bool
+isPossibleBag bag = (red bag <= red largestBag) && (blue bag <= blue largestBag) && (green bag <= green largestBag)
+
 isGamePossible :: (ID, [Round]) -> Maybe ID
-isGamePossible (id, game) | maximumBag game < largestBag = Just id
+isGamePossible (id, game) | isPossibleBag $ maximumBag game = Just id
                           | otherwise = Nothing
 
 runPt1 = sum . map (\(ID n) -> n) . mapMaybe isGamePossible <$> readData
