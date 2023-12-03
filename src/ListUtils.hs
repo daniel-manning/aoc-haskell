@@ -7,8 +7,9 @@ module ListUtils
     ) where
 
     import Data.Hashable
+    import Models (Position(..))
 
-    data Position = Position Int Int deriving (Ord, Eq, Show)
+   
 
     instance Hashable Position where
         hashWithSalt s (Position x y) =
