@@ -9,6 +9,7 @@ import Grid (neighbourhood, dimensions, Dimensions(..), neighbourhoodOnInfGrid)
 import Data.Set (Set)
 import qualified Data.Set as Set (fromList, insert, empty, union, map, toList, intersection, disjoint)
 import Data.List (groupBy)
+import Data.Maybe (mapMaybe)
 
 
 data Tile = Empty | Number String | Symbol Char deriving Show
@@ -68,3 +69,23 @@ findAdjacentNumbers ts = map fst adjacentTiles
 
 
 runPt1 = sum . map (\(Number n) -> read n :: Int) . findAdjacentNumbers <$> tiles
+---------------------
+possibleGears :: [[(Tile, Set Position)]] -> [(Tile, Set Position)]
+possibleGears = filter (\(Symbol c, _) -> c == '*') . symbols
+
+gears:: [[(Tile, Set Position)]] -> [(Tile, Int)]
+gears ts = map gearRatio pg
+    where
+        pg = mapMaybe (twoAdjacentNumbers ts . (\(t, sp) -> (t, head $ Set.toList sp))) $ possibleGears ts
+
+twoAdjacentNumbers :: [[(Tile, Set Position)]] -> (Tile, Position) -> Maybe (Tile, Position, Tile, Tile)
+twoAdjacentNumbers ts (t, p) = if length adjacentTiles == 2 then Just (t, p, head adjacentTiles, adjacentTiles !! 1) else Nothing
+    where
+        n = Set.fromList $ neighbourhoodOnInfGrid p
+        ns = numbers ts
+        adjacentTiles = map fst $ filter (\(t, ps) -> not (Set.disjoint ps n)) ns
+
+gearRatio :: (Tile, Position, Tile, Tile) -> (Tile, Int)
+gearRatio (t, _, Number m, Number n) = (t, read m*read n)
+
+runPt2 = sum . map snd . gears <$> tiles
