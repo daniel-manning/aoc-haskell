@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 module Day04_2023 (
 ) where
 
@@ -45,27 +46,24 @@ score c | n == 0 = 0
 
 runPt1 = sum . map score <$> readData
 ------------------
-scatchcards :: [Card] -> [(Int, Card)]
-scatchcards = map (\c@(Card id _ _) -> (id, c))
+initialScratchCards :: [Card] -> [(Int, Card)]
+initialScratchCards =  map (1,)
 
-initialScratchCards :: [Card] -> [(Int, Int, Card)]
-initialScratchCards cs =  map (\(id, c) -> (id, 1, c)) $ scatchcards cs
-
-scoreFlow :: (Int, Int, Card) -> [(Int, Int, Card)] -> [(Int, Int, Card)] -> [(Int, Int, Card)]
+scoreFlow :: (Int, Card) -> [(Int, Card)] -> [(Int, Card)] -> [(Int, Card)]
 scoreFlow c done [] = c:done -- last card can't win anything by requirements
-scoreFlow t@(id, n, c) done cs = scoreFlow (head cs') (t:done) (tail cs')
+scoreFlow t@(n, c) done cs = scoreFlow (head cs') (t:done) (tail cs')
     where
         s = noOfWinningNumbers c
         ns = replicate s n
         cs' = addToCards ns cs
 
 
-addToCards :: [Int] -> [(Int, Int, Card)] -> [(Int, Int, Card)]
-addToCards is cs = zipWith (\n (i, m, c) -> (i, n+m, c)) is (take (length is) cs) ++ drop (length is) cs
+addToCards :: [Int] -> [(Int, Card)] -> [(Int, Card)]
+addToCards is cs = zipWith (\n (m, c) -> (n+m, c)) is (take (length is) cs) ++ drop (length is) cs
 
-playCards :: [Card] -> [(Int, Int, Card)]
+playCards :: [Card] -> [(Int, Card)]
 playCards cs = scoreFlow (head isc) [] (tail isc)
     where
         isc = initialScratchCards cs
 
-runPt2 = sum . map (\(_, n, _) -> n) . playCards <$> readData
+runPt2 = sum . map fst . playCards <$> readData
