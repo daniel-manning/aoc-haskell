@@ -23,4 +23,14 @@ makePrediction = foldr (\ a b -> last a - b) 0
 findPrediction :: [Integer] -> Integer
 findPrediction  = makePrediction . makeDifferenceLines
 
+runPt1 :: IO Integer
 runPt1 = sum . map findPrediction <$> readData
+---------------
+makePrediction' :: [[Integer]] -> Integer
+makePrediction' = foldr (\ a b -> b + head a) 0 
+
+findPrediction' :: [Integer] -> Integer
+findPrediction'  = makePrediction' . makeDifferenceLines
+
+runPt2 :: IO Integer
+runPt2 = sum . map findPrediction' <$> readData
