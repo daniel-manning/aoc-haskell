@@ -12,7 +12,7 @@ import Data.Map (Map)
 import qualified Data.Map.Lazy as Map (lookup, fromList)
 import Grid (neighbourhoodOnInfGridWithoutD)
 import ListUtils (Position(..), convertToPositionList)
-import Debug.Trace(trace)
+import Models ( Position(..) )
 
 data Tile = VPipe | HPipe | NEBend | NWBend | SWBend | SEBend | Ground | Animal deriving Eq
 type TileField = [[Tile]]
@@ -50,36 +50,52 @@ readData = map (mapMaybe toTile) . lines <$> readFile "resource/2023/day10"
 
 data Compass = North | East | South | West deriving Show
 
-moveAlongPipe :: Compass -> Tile -> Position -> (Position, Compass)
-moveAlongPipe North VPipe (Position x y) = (Position x (y-1), North)
-moveAlongPipe South VPipe (Position x y) = (Position x (y+1), South) 
-moveAlongPipe East HPipe (Position x y) = (Position (x+1) y, East)
-moveAlongPipe West HPipe (Position x y) = (Position (x-1) y, West)
-moveAlongPipe South NEBend (Position x y) = (Position (x+1) y, East)
-moveAlongPipe West NEBend (Position x y) = (Position x (y-1), North)
-moveAlongPipe South NWBend (Position x y) = (Position (x-1) y, West)
-moveAlongPipe East NWBend (Position x y) = (Position x (y-1), North)
-moveAlongPipe East SWBend (Position x y) = (Position x (y+1), South)
-moveAlongPipe North SWBend (Position x y) = (Position (x-1) y, West)
-moveAlongPipe North SEBend (Position x y) = (Position (x+1) y, East)
-moveAlongPipe West SEBend (Position x y) = (Position x (y+1), South)
-moveAlongPipe c t p = trace ((show c) ++ (show t) ++ (show p)) (p, c)
+moveAlongPipe :: Compass -> Tile -> Position -> Maybe (Position, Compass)
+moveAlongPipe North VPipe (Position x y) = Just (Position x (y-1), North)
+moveAlongPipe South VPipe (Position x y) = Just (Position x (y+1), South)
+moveAlongPipe East VPipe _ = Nothing
+moveAlongPipe West VPipe _ = Nothing
+
+moveAlongPipe East HPipe (Position x y) = Just (Position (x+1) y, East)
+moveAlongPipe West HPipe (Position x y) = Just (Position (x-1) y, West)
+moveAlongPipe North HPipe _ = Nothing
+moveAlongPipe South HPipe _ = Nothing
+
+moveAlongPipe South NEBend (Position x y) = Just (Position (x+1) y, East)
+moveAlongPipe West NEBend (Position x y) = Just (Position x (y-1), North)
+moveAlongPipe East NEBend _ = Nothing
+moveAlongPipe North NEBend _ = Nothing
+
+moveAlongPipe South NWBend (Position x y) = Just (Position (x-1) y, West)
+moveAlongPipe East NWBend (Position x y) = Just (Position x (y-1), North)
+moveAlongPipe West NWBend _ = Nothing
+moveAlongPipe North NWBend _ = Nothing
+
+moveAlongPipe East SWBend (Position x y) = Just (Position x (y+1), South)
+moveAlongPipe North SWBend (Position x y) = Just (Position (x-1) y, West)
+moveAlongPipe West SWBend _ = Nothing
+moveAlongPipe South SWBend _ = Nothing
+
+moveAlongPipe North SEBend (Position x y) = Just (Position (x+1) y, East)
+moveAlongPipe West SEBend (Position x y) = Just (Position x (y+1), South)
+moveAlongPipe South SEBend _ = Nothing
+moveAlongPipe East SEBend _ = Nothing
 
 loopWalk :: Compass -> Position -> Position -> Map Position Tile -> [Position]
 loopWalk c p fp mpt | p == fp = [p]
                     | otherwise = p : loopWalk c' p' fp mpt
     where
         t = fromJust $ Map.lookup p mpt
-        (p', c') = moveAlongPipe c t p
+        (p', c') = fromJust $ moveAlongPipe c t p
 
 startingPosition :: [(Position, Tile)] -> Position
 startingPosition = fst . fromJust . find (\(_, t) -> t == Animal)
 
 isConnected :: Position -> (Position, Tile) -> Bool
-isConnected (Position x y) (Position x1 y1, t) | x > x1 && y == y1 = t == HPipe || t == NWBend || t ==  SWBend
-                                               | x < x1 && y == y1 = t == HPipe || t == NEBend || t ==  SEBend
-                                               | x == x1 && y > y1 = t == VPipe || t == NEBend || t ==  NWBend
-                                               | x == x1 && y < y1 = t == VPipe || t == SEBend || t ==  SWBend
+isConnected (Position x y) (Position x1 y1, t) | x > x1 && y == y1 = t == HPipe || t == NEBend || t ==  SEBend
+                                               | x < x1 && y == y1 = t == HPipe || t == NWBend || t ==  SWBend
+                                               | x == x1 && y > y1 = t == VPipe || t == SEBend || t ==  SWBend
+                                               | x == x1 && y < y1 = t == VPipe || t == NEBend || t ==  NWBend
 
 compass :: Position -> (Position, Tile) -> Compass
 compass (Position x y) (Position x1 y1, t) | x > x1 && y == y1 = West
