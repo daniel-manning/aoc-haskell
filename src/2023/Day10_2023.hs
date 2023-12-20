@@ -6,13 +6,15 @@ module Day10_2023
     (
     ) where
 
-import Data.List (find)
-import Data.Maybe (mapMaybe, fromJust)
+import Data.List (find, foldl, length, groupBy, sortBy, sort)
+import Data.Maybe (mapMaybe, fromJust, isJust)
 import Data.Map (Map)
 import qualified Data.Map.Lazy as Map (lookup, fromList)
 import Grid (neighbourhoodOnInfGridWithoutD)
-import ListUtils (Position(..), convertToPositionList)
+import ListUtils (Position(..), convertToPositionList, createPositionGrid)
 import Models ( Position(..) )
+import Data.Tuple.Extra (thd3)
+import Data.Either.Validation (_Failure)
 
 data Tile = VPipe | HPipe | NEBend | NWBend | SWBend | SEBend | Ground | Animal deriving Eq
 type TileField = [[Tile]]
@@ -48,7 +50,7 @@ readData :: IO [[Tile]]
 readData = map (mapMaybe toTile) . lines <$> readFile "resource/2023/day10"
 ----------------------------
 
-data Compass = North | East | South | West deriving Show
+data Compass = North | East | South | West deriving (Eq, Ord, Show)
 
 moveAlongPipe :: Compass -> Tile -> Position -> Maybe (Position, Compass)
 moveAlongPipe North VPipe (Position x y) = Just (Position x (y-1), North)
@@ -121,3 +123,64 @@ furthestAway :: [Position] -> Int
 furthestAway ps = length ps `div` 2
 
 runPt1 =  furthestAway . findPathFromStart . convertToPositionList <$> readData
+--------------------------
+newtype PathTiles = PathTiles (Map Position Tile) -- Restricted to just the positions of the path
+
+rayCastLine :: Foldable t => PathTiles -> Tile -> t Position -> [Position] --reduced list of just the INSIDE elements
+rayCastLine pts replacement = thd3 . foldl (trackBorderCrossing pts replacement)  (0, Nothing, [])
+
+isBend :: Maybe Tile -> Bool
+isBend t = t == Just SWBend || t == Just SEBend || t == Just NEBend || t == Just NWBend
+
+samePolarity :: Maybe Tile -> Maybe Tile -> Bool
+samePolarity a b | a == b = True
+samePolarity (Just SWBend) (Just SEBend) = True
+samePolarity (Just SEBend) (Just SWBend) = True
+samePolarity (Just NEBend) (Just NWBend) = True
+samePolarity (Just NWBend) (Just NEBend) = True
+samePolarity _ _ = False
+
+trackBorderCrossing :: PathTiles -> Tile -> (Int, Maybe Tile, [Position]) -> Position -> (Int, Maybe Tile, [Position])
+trackBorderCrossing (PathTiles mpt) replacement (n, mt, ps) p = trackBorderCrossing' (PathTiles mpt) replacement (n, mt, ps) p (Map.lookup p mpt)
+
+trackBorderCrossing' (PathTiles mpt) replacement (n, mt, ps) p (Just VPipe) = (n + 1, mt, ps)
+trackBorderCrossing' (PathTiles mpt) replacement (n, mt, ps) p (Just Animal) = trackBorderCrossing' (PathTiles mpt) replacement (n, mt, ps) p (Just replacement)
+trackBorderCrossing' (PathTiles mpt) replacement (n, mt, ps) p t | isJust mt && isBend t && not (samePolarity mt t) = (n, Nothing, ps)
+                                                  | isJust mt && isBend t && samePolarity mt t = (n + 1, Nothing, ps)
+                                                  | isBend t = (n + 1, t, ps)
+                                                  | isJust t = (n, mt, ps) 
+                                                  | even n = (n, mt, ps)   --even is outside
+                                                  | otherwise = (n, mt, p: ps) -- odd is inside
+
+traceAllRays :: PathTiles -> Tile -> [[Position]] -> Int
+traceAllRays mpt replacement = foldl (\n ps -> n + length (rayCastLine mpt replacement ps)) 0
+
+restrictToJustTilesOnPath :: [(Position, Tile)] -> [Position] -> PathTiles
+restrictToJustTilesOnPath pts ps = PathTiles $ Map.fromList $ filter (\pt ->  fst pt `elem` ps) pts
+
+
+replacementTile :: [Compass] -> Tile
+replacementTile [North, South] = VPipe
+replacementTile [East, West] = HPipe
+replacementTile [North, East] = NEBend
+replacementTile [North, West] = NWBend
+replacementTile [South, West] = SWBend
+replacementTile [East,South] = SEBend
+
+
+findReplacement :: [(Position, Tile)] -> Tile
+findReplacement ps = replacementTile (sort $ map fst ds)
+    where
+        start = startingPosition ps
+        ds = directionOfFirstStep ps start
+
+
+countUpInterior :: [(Position, Tile)] -> Int
+countUpInterior pss = traceAllRays mpt replacement grid
+    where
+        path = findPathFromStart pss
+        mpt = restrictToJustTilesOnPath pss path
+        grid = createPositionGrid pss
+        replacement = findReplacement pss
+
+runPt2 =  countUpInterior . convertToPositionList <$> readData
