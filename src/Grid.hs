@@ -3,7 +3,8 @@ module Grid (
     neighbourhood,
     dimensions,
     Dimensions (..),
-    neighbourhoodOnInfGrid
+    neighbourhoodOnInfGrid,
+    neighbourhoodOnInfGridWithoutD
 ) where
 
 import Models (Position(..))
@@ -28,3 +29,13 @@ neighbourhoodOnInfGrid (Position x y) = [
     Position (x-1) (y-1), Position x (y-1), Position (x+1) (y-1),
     Position (x-1) y,                       Position (x+1) y,
     Position (x-1) (y+1), Position x (y+1), Position (x+1) (y+1)]
+
+--Without diagonal
+--   *
+--  * *
+--   *
+neighbourhoodOnInfGridWithoutD :: Position -> [Position]
+neighbourhoodOnInfGridWithoutD (Position x y) = [
+                          Position x (y-1),
+    Position (x-1) y,                       Position (x+1) y,
+                          Position x (y+1)]
