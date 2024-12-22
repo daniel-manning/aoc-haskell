@@ -42,6 +42,8 @@ dependencies:
 - psqueues
 - split
 - pointedlist
+- regex-tdfa
+- lens
 
 library:
   source-dirs: src

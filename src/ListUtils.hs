@@ -4,7 +4,8 @@ module ListUtils
      window,
      Position(..),
      groupBetweenBlankLines,
-     createPositionGrid
+     createPositionGrid,
+     recreateGrid
     ) where
 
 import Data.Hashable ( Hashable(hashWithSalt) )
@@ -44,3 +45,12 @@ createPositionGrid :: [(Position, a)] -> [[Position]]
 createPositionGrid pts = map (sortBy orderByFirst) $ groupBy (\(Position a b) (Position c d) -> b == d)  $ sortBy orderBySecond ps
     where
         ps = map fst pts 
+
+orderByFirstInPosition :: (Position, a) -> (Position,a) -> Ordering
+orderByFirstInPosition ((Position a b),_) ((Position c d),_) = compare a c 
+
+orderBySecondInPosition :: (Position, a) -> (Position, a) -> Ordering
+orderBySecondInPosition ((Position a b),_) ((Position c d),_) = compare b d
+
+recreateGrid :: [(Position, a)] -> [[a]]
+recreateGrid = map (map snd) . map (sortBy orderByFirstInPosition) . groupBy (\((Position a b), _) ((Position c d), _) -> b == d) . sortBy orderBySecondInPosition
