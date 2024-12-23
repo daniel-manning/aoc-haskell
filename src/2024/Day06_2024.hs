@@ -75,9 +75,11 @@ patrolUntilDoneOrLoop pss (Guard p c, ps, patrol) | patrol == ENDED || patrol ==
                                                   | otherwise = patrolUntilDoneOrLoop pss $ walkForward' pss (Guard p c, ps, patrol)
 
 blockNextPosition :: Map.Map Position Space -> ([(Position, Compass)], [Position]) -> (Position, Compass) -> ([(Position, Compass)], [Position])
-blockNextPosition mps (patrols, objects) (p,c) | result == LOOP = (patrols ++ [(p,c)], objects ++ [p])
+blockNextPosition mps (patrols, objects) (p,c) | p `elem` previousPositions = (patrols ++ [(p,c)], objects) --Can't place object on a position you've already walked through 
+                                               | result == LOOP = (patrols ++ [(p,c)], objects ++ [p])
                                                | otherwise = (patrols ++ [(p,c)], objects)  
     where
+        previousPositions = map fst patrols
         mps' = Map.insert p BLOCK mps 
         result = patrolUntilDoneOrLoop mps' ((uncurry Guard $ last patrols, init patrols, ONGOING))
 
@@ -87,4 +89,4 @@ allBlocksMakingLoops mps = nub $ snd $ foldl (blockNextPosition mps) ([head patr
     where
         patrol = originalPatrol mps
 
-runPt2 = allBlocksMakingLoops <$> readData
+runPt2 = length . allBlocksMakingLoops <$> readData
