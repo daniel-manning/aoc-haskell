@@ -4,17 +4,17 @@ module Day09_2024 (
 import Data.List
 import Debug.Trace
 
-data Block = File Int Int | Free Int deriving Show
-
+data Block = File {id :: Int,  length :: Int } | Free Int deriving Show
 
 readData = readFile "resource/2024/day09"
-
+--------------------------------------
+buildBlocks :: [Char] -> [Block]
 buildBlocks = buildBlocks' . zip [1..]
-
-buildBlocks' :: [(Int, Char)] -> [Block]
-buildBlocks' [] = []
-buildBlocks' [(l, x)] = [File (l `div` 2) (read [x])]
-buildBlocks' ((l,x): (_,y): xs) = [ File (l `div` 2) (read [x]), Free (read [y])] ++ buildBlocks' xs
+    where
+        buildBlocks' :: [(Int, Char)] -> [Block]
+        buildBlocks' [] = []
+        buildBlocks' [(l, x)] = [File (l `div` 2) (read [x])]
+        buildBlocks' ((l,x): (_,y): xs) = [ File (l `div` 2) (read [x]), Free (read [y])] ++ buildBlocks' xs
 
 buildFileBlocks :: [Block] -> String
 buildFileBlocks [] = []
@@ -35,9 +35,12 @@ reduceFileBlocks [Free n] = [Free n]
 reduceFileBlocks ((File id n):xs) = (File id n) : reduceFileBlocks xs
 reduceFileBlocks ((Free n):xs) = (\(a, b) -> a ++ reduceFileBlocks b) $ (findMoveableEnd (Free n) ([], xs))
 
+addCheckSum :: (Integer, Integer) -> Block -> (Integer, Integer)
+addCheckSum (n, t) (Free l) = (n + toInteger l, t)
+addCheckSum (n, t) (File id l) = (n + toInteger l, t + (sum $ map ((toInteger id)*) $ take l $ [n, n+1 ..]))
+
 checkSum :: [Block] -> Integer
-checkSum s = sum $ map (\(a, b) -> a * (read [b])) $ zip [0..] (buildFileBlocks s)
+checkSum s = sum $ foldl' addCheckSum (0, 0) s
 
+runPt1 :: IO Integer
 runPt1 = checkSum  . reduceFileBlocks . buildBlocks <$> readData
-
----instead of writing out the strings you can keep them as blocks then replace free blocks wih File blocks from the right
