@@ -2,12 +2,9 @@ module Day09_2024 (
 ) where
 
 import Data.List
-import Debug.Trace
 
 data Block = File {id :: Int,  length :: Int } | Free Int deriving Show
 
-readData = readFile "resource/2024/day09"
---------------------------------------
 buildBlocks :: [Char] -> [Block]
 buildBlocks = buildBlocks' . zip [1..]
     where
@@ -16,10 +13,9 @@ buildBlocks = buildBlocks' . zip [1..]
         buildBlocks' [(l, x)] = [File (l `div` 2) (read [x])]
         buildBlocks' ((l,x): (_,y): xs) = [ File (l `div` 2) (read [x]), Free (read [y])] ++ buildBlocks' xs
 
-buildFileBlocks :: [Block] -> String
-buildFileBlocks [] = []
-buildFileBlocks ((Free n):xs) = replicate n '.' ++ buildFileBlocks xs
-buildFileBlocks ((File id n):xs) = replicate n (head $ show id) ++ buildFileBlocks xs
+readData :: IO [Block]
+readData = buildBlocks <$> readFile "resource/2024/day09"
+--------------------------------------
 
 findMoveableEnd :: Block -> ([Block], [Block]) -> ([Block], [Block])
 findMoveableEnd (Free n) (a, []) = (a, [])
@@ -43,4 +39,6 @@ checkSum :: [Block] -> Integer
 checkSum s = sum $ foldl' addCheckSum (0, 0) s
 
 runPt1 :: IO Integer
-runPt1 = checkSum  . reduceFileBlocks . buildBlocks <$> readData
+runPt1 = checkSum  . reduceFileBlocks <$> readData
+-------------------------------------------
+
